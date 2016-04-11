@@ -1,0 +1,23 @@
+---
+- name: Set Web Bind Address
+  lineinfile:
+    dest: "{{ eap_runtime_conf_file }}"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address=0.0.0.0"
+  when: eap_bind_web_interface
+
+- name: Set Management Bind Address
+  lineinfile:
+    dest: "{{ eap_runtime_conf_file }}"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management=0.0.0.0"
+  when: eap_bind_management_interface
+
+- name: Set User Time Zone for Logs
+  lineinfile:
+    dest: "{{ eap_runtime_conf_file }}"
+    line: JAVA_OPTS="$JAVA_OPTS -Duser.timezone=America/New_York"
+
+#    -Dkie.maven.settings.custom=/opt/jboss/.m2/settings.xml \
+#	-Djboss.bind.address.management=0.0.0.0 \
+#    -Dorg.uberfire.nio.git.daemon.host=0.0.0.0 \
+#	-Dorg.uberfire.nio.git.ssh.host=0.0.0.0 \
+#	-Djava.security.egd=file:/dev/./urandom

@@ -1,0 +1,47 @@
+---
+# borrowed from 
+# http://www.opensourcerers.org/how-to-setup-jboss-eap-with-rhel-7-systemd-linuxes/
+# http://www.dmartin.es/2014/07/jboss-eap-6-as-rhel-7-service/ 
+
+- name: Create jboss-as Service Conf Directory
+  file:
+    path: "{{ eap_service_conf_dir }}"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    state: directory
+    mode: "755"
+
+- name: Copy jboss-as Service Conf File
+  copy:
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    src: jboss-as.conf
+    dest: "{{ eap_service_conf_file }}"
+    mode: "755"
+
+- name: Create jboss-as Service Log Directory
+  file:
+    path: "{{ eap_service_log_dir }}"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    state: directory
+    mode: "755"
+
+- name: Create jboss-as Service Runtime Data Directory
+  file:
+    path: "{{ eap_service_data_dir }}"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    state: directory
+    mode: "755"
+
+- name: Copy jboss-as systemd Unit File
+  copy:
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    src: jboss-as-standalone.service
+    dest: "{{ eap_service_file }}"
+    mode: "755"
+  notify: 
+    - Reload systemd
+    - Start and Enable jboss-as Service # This feels a little hacky

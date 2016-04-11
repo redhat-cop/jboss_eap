@@ -1,0 +1,9 @@
+- name: Reload systemd
+  sudo: yes
+  command: systemctl daemon-reload
+
+- name: Start and Enable jboss-as Service
+  service:
+    name: jboss-as-standalone.service
+    state: started
+    enabled: yes  

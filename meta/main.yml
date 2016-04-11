@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: Red Hat Consulting
+  description: Role to install JBoss Application Platform
+  company: Red Hat
+  license: license (Apache)
+  min_ansible_version: 1.8
+  platforms:
+   - name: EL
+     versions:
+     - 7
+  categories:
+   - java
+   - jboss
+   - eap
+
