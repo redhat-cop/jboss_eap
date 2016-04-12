@@ -17,12 +17,12 @@ Required Role Variables
 Dependencies
 ------------
 
-* java
+- java
 
 Example Playbook
 ----------------
 
-*WIP*
+[JBoss EAP 6.4.0 on RHEL 7](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/eap6.4-centos7.yml)
 
 License
 -------
