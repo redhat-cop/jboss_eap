@@ -2,8 +2,8 @@
 # Installs a BPM Suite via Red Hat internal downloads
 # Update these to reflect your organizations artifact repos
 
-eap_artifact_repo: http://files.justinholmes.co
-eap_artifact_name: jboss-eap-6.4.5-full-build.zip
+eap_artifact_repo: https://access.redhat.com/cspdownload/c0b50c2aa9f906dc202afb44b029bea4/570c62e4/JBEAP-6.4.0
+eap_artifact_name: jboss-eap-6.4.0.zip
 
 eap_library_dest: /opt/jboss-as
 
@@ -12,6 +12,8 @@ eap_service_conf_file: /etc/jboss-as/jboss-as.conf
 eap_service_log_dir: /var/log/jboss-as
 eap_service_data_dir: /var/run/jboss-as
 eap_service_file: /etc/systemd/system/jboss-as-standalone.service
+
+eap_logging_timezone: America/New_York
 
 eap_runtime_conf_file: /opt/jboss-as/jboss-eap-6.4/bin/standalone.conf
 eap_standalone_configuration_dir: /opt/jboss-as/jboss-eap-6.4/standalone/configuration/

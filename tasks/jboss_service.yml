@@ -1,7 +1,32 @@
 ---
-# borrowed from 
+# borrowed from
 # http://www.opensourcerers.org/how-to-setup-jboss-eap-with-rhel-7-systemd-linuxes/
-# http://www.dmartin.es/2014/07/jboss-eap-6-as-rhel-7-service/ 
+# http://www.dmartin.es/2014/07/jboss-eap-6-as-rhel-7-service/
+
+- name: Create JBoss Group
+  group:
+    name: "{{ jboss_group }}"
+    system: yes
+    state: present
+    gid: "400"
+
+- name: Create JBoss User
+  user:
+    name: "{{ jboss_user }}"
+    comment: "JBoss user"
+    uid: "400"
+    group: "{{ jboss_group }}"
+    home: "{{ eap_library_dest }}"
+    shell: "/bin/bash"
+
+- name: Create JBoss Home Directory
+  sudo: true
+  file:
+    path: "{{ eap_library_dest }}"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    state: directory
+    mode: "755"
 
 - name: Create jboss-as Service Conf Directory
   file:
@@ -42,6 +67,5 @@
     src: jboss-as-standalone.service
     dest: "{{ eap_service_file }}"
     mode: "755"
-  notify: 
+  notify:
     - Reload systemd
-    - Start and Enable jboss-as Service # This feels a little hacky
