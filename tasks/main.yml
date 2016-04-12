@@ -4,12 +4,12 @@
 # https://github.com/openshift/openshift-ansible/blob/master/docs/best_practices_guide.adoc
 
 - name: Fail for Missing Red Hat Network Username
-  fail: msg="This role requires rhn_username to be set and non empty. Set it at the playbook level."
+  fail: msg="This role requires rhn_username to be set and non empty."
   when: rhn_username is not defined or rhn_username == ''
 
 - name: Fail for Missing Red Hat Network Password
-  fail: msg="This role requires rhn_username to be set and non empty. Set it at the playbook level."
-  when: rhn_username is not defined or rhn_password == ''
+  fail: msg="This role requires rhn_password to be set and non empty."
+  when: rhn_password is not defined or rhn_password == ''
 
 #### Set Facts
 # TODO: These probably should be expanded and the vars reduced
