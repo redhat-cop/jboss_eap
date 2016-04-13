@@ -6,26 +6,38 @@
 - name: Fail for Missing Red Hat Network Username
   fail: msg="This role requires rhn_username to be set and non empty."
   when: rhn_username is not defined or rhn_username == ''
+  tags:
+    - jboss_eap
 
 - name: Fail for Missing Red Hat Network Password
   fail: msg="This role requires rhn_password to be set and non empty."
   when: rhn_password is not defined or rhn_password == ''
+  tags:
+    - jboss_eap
 
 #### Set Facts
-# TODO: These probably should be expanded and the vars reduced
-- name: Set JBoss EAP Artifact Facts
+- name: Set JBoss EAP Download Facts
   set_fact:
-    eap_artifact_url: "{{ eap_artifact_repo + '/' + eap_artifact_name }}"
-    eap_artifact_dl_dest: "{{ '/tmp/' + eap_artifact_name }}"
+    jboss_eap_artifact_url: "{{ jboss_eap_artifact_repo + '/' + jboss_eap_artifact_name }}"
+    jboss_eap_artifact_dl_dest: "{{ '/tmp/' + jboss_eap_artifact_name }}"
+    jboss_eap_library_dest: "/opt/{{ jboss_eap_user }}"
 
-- name: Debug JBoss EAP Artifact URL
-  debug:
-    msg: "{{ eap_artifact_url }}"
+- name: Set JBoss EAP Group Facts
+  set_fact:
+    jboss_eap_group: "{{ jboss_eap_user }}"
 
-- name: Debug JBoss EAP Download Destination
-  debug:
-    msg: "{{ eap_artifact_dl_dest }}"
+- name: Set JBoss EAP Service Directories Facts
+  set_fact:
+    jboss_eap_home: "{{ jboss_eap_library_dest }}/jboss-eap-6.4"
+    jboss_eap_service_conf_dir: "/etc/{{ jboss_eap_user }}"
+    jboss_eap_service_log_dir: "/var/log/{{ jboss_eap_user }}"
+    jboss_eap_service_data_dir: "/var/run/{{ jboss_eap_user }}"
 
+- name: Set JBoss EAP Service Files Facts
+  set_fact:
+    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/{{ jboss_eap_user }}.conf"
+    jboss_eap_runtime_conf_file: "{{ jboss_eap_home }}/bin/standalone.conf"
+    jboss_eap_standalone_service_file: "/etc/systemd/system/{{ jboss_eap_user }}-standalone.service"
 
 #### Create Service Account
 
@@ -35,40 +47,50 @@
 
 - name: Download JBoss EAP from Red Hat Customer Portal
   get_url:
-    url: "{{ eap_artifact_url }}"
-    dest: "{{ eap_artifact_dl_dest }}"
+    url: "{{ jboss_eap_artifact_url }}"
+    dest: "{{ jboss_eap_artifact_dl_dest }}"
     url_username: "{{ rhn_username }}"
     url_password: "{{ rhn_password }}"
+  tags:
+    - jboss_eap
 
 - name: Extract JBoss EAP Libraries
   sudo: true
   unarchive:
-    src: "{{ eap_artifact_dl_dest }}"
-    dest: "{{ eap_library_dest }}"
+    src: "{{ jboss_eap_artifact_dl_dest }}"
+    dest: "{{ jboss_eap_library_dest }}"
     creates: jboss-eap-6.4
     copy: no
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+  tags:
+    - jboss_eap
 
 
 #### Set Sensible Defaults For Runtime
 
 - name: Set Web Bind Address
   lineinfile:
-    dest: "{{ eap_runtime_conf_file }}"
+    dest: "{{ jboss_eap_runtime_conf_file }}"
     line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address=0.0.0.0"
-  when: eap_bind_web_interface
+  when: jboss_eap_bind_web_interface
+  tags:
+    - jboss_eap
 
 - name: Set Management Bind Address
   lineinfile:
-    dest: "{{ eap_runtime_conf_file }}"
+    dest: "{{ jboss_eap_runtime_conf_file }}"
     line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management=0.0.0.0"
-  when: eap_bind_management_interface
+  when: jboss_eap_bind_management_interface
+  tags:
+    - jboss_eap
 
 - name: Set User Time Zone for Logs
   lineinfile:
-    dest: "{{ eap_runtime_conf_file }}"
-    line: "JAVA_OPTS=\"$JAVA_OPTS -Duser.timezone={{eap_logging_timezone}}\""
+    dest: "{{ jboss_eap_runtime_conf_file }}"
+    line: "JAVA_OPTS=\"$JAVA_OPTS -Duser.timezone={{jboss_eap_logging_timezone}}\""
+  tags:
+    - jboss_eap
 
 
 ### Fire it up
@@ -78,3 +100,5 @@
     name: jboss-as-standalone.service
     state: started
     enabled: yes
+  tags:
+    - jboss_eap
