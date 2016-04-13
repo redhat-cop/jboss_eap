@@ -32,7 +32,7 @@ License
 Authors Information
 ------------------
 
-* [Andrew Block] (https://github.com/orgs/rhtconsulting/people/sabre1041)
-* [Albert Wong] (https://github.com/orgs/rhtconsulting/people/alberttwong)
+* [Andrew Block] (https://github.com/sabre1041)
+* [Albert Wong] (https://github.com/alberttwong)
 * [Justin Holmes] (https://github.com/sherl0cks)
 * [Kamesh Sampath] (https://github.com/kameshsampath)
