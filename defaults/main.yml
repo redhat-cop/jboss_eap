@@ -1,6 +1,7 @@
 ---
 jboss_eap_artifact_repo: http://files.justinholmes.co
 jboss_eap_artifact_name: jboss-eap-6.4.0.zip  #jboss-eap-7.0.0.Beta.zip
+jboss_eap_patch_artifact_name: jboss-eap-6.4.7-patch.zip
 
 jboss_eap_logging_timezone: America/New_York
 
