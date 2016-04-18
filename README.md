@@ -11,8 +11,8 @@ Requirements
 Required Role Variables
 --------------
 
-- 'rhn_username'
-- 'rhn_password'
+- `rhn_username`
+- `rhn_password`
 
 Dependencies
 ------------
