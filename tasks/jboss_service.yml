@@ -3,69 +3,85 @@
 # http://www.opensourcerers.org/how-to-setup-jboss-eap-with-rhel-7-systemd-linuxes/
 # http://www.dmartin.es/2014/07/jboss-eap-6-as-rhel-7-service/
 
-- name: Create JBoss Group
+- name: Create JBoss EAP Group
   group:
-    name: "{{ jboss_group }}"
+    name: "{{ jboss_eap_group }}"
     system: yes
     state: present
     gid: "400"
+  tags:
+    - jboss_eap
 
-- name: Create JBoss User
+- name: Create JBoss EAP User
   user:
-    name: "{{ jboss_user }}"
-    comment: "JBoss user"
+    name: "{{ jboss_eap_user }}"
+    comment: "JBoss EAP User"
     uid: "400"
-    group: "{{ jboss_group }}"
-    home: "{{ eap_library_dest }}"
+    group: "{{ jboss_eap_group }}"
+    home: "{{ jboss_eap_library_dest }}"
     shell: "/bin/bash"
+  tags:
+    - jboss_eap
 
-- name: Create JBoss Home Directory
+- name: Create JBoss EAP Library Destination
   sudo: true
   file:
-    path: "{{ eap_library_dest }}"
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    path: "{{ jboss_eap_library_dest }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
     state: directory
     mode: "755"
+  tags:
+    - jboss_eap
 
-- name: Create jboss-as Service Conf Directory
+- name: Create JBoss EAP Service Conf Directory
   file:
-    path: "{{ eap_service_conf_dir }}"
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    path: "{{ jboss_eap_service_conf_dir }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
     state: directory
     mode: "755"
+  tags:
+    - jboss_eap
 
-- name: Copy jboss-as Service Conf File
+- name: Copy JBoss EAP Service Conf File
   copy:
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
     src: jboss-as.conf
-    dest: "{{ eap_service_conf_file }}"
+    dest: "{{ jboss_eap_service_conf_file }}"
     mode: "755"
+  tags:
+    - jboss_eap
 
-- name: Create jboss-as Service Log Directory
+- name: Create JBoss EAP Service Log Directory
   file:
-    path: "{{ eap_service_log_dir }}"
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    path: "{{ jboss_eap_service_log_dir }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
     state: directory
     mode: "755"
+  tags:
+    - jboss_eap
 
-- name: Create jboss-as Service Runtime Data Directory
+- name: Create JBoss EAP Service Runtime Data Directory
   file:
-    path: "{{ eap_service_data_dir }}"
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    path: "{{ jboss_eap_service_data_dir }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
     state: directory
     mode: "755"
+  tags:
+    - jboss_eap
 
-- name: Copy jboss-as systemd Unit File
+- name: Copy JBoss EAP systemd Unit File
   copy:
-    owner: "{{ jboss_user }}"
-    group: "{{ jboss_group }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
     src: jboss-as-standalone.service
-    dest: "{{ eap_service_file }}"
+    dest: "{{ jboss_eap_standalone_service_file }}"
     mode: "755"
   notify:
     - Reload systemd
+  tags:
+    - jboss_eap
