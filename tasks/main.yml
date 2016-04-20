@@ -18,10 +18,10 @@
 #### Set Facts
 - name: Set JBoss EAP Download Facts
   set_fact:
-    jboss_eap_artifact_url: "{{ jboss_eap_artifact_repo + '/' + jboss_eap_artifact_name }}"
+    jboss_eap_artifact_url: "{{ jboss_eap_artifact_source }}"
     jboss_eap_artifact_dl_dest: "{{ '/tmp/' + jboss_eap_artifact_name }}"
     jboss_eap_library_dest: "/opt/{{ jboss_eap_user }}"
-    jboss_eap_patch_artifact_url: "{{ jboss_eap_artifact_repo + '/' + jboss_eap_patch_artifact_name }}"
+    jboss_eap_patch_artifact_url: "{{ jboss_eap_patch_artifact_source }}"
     jboss_eap_patch_dest: "/tmp/{{ jboss_eap_patch_artifact_name }}"
   tags:
     - jboss_eap
@@ -56,11 +56,11 @@
 #### Download and install base library and patch
 
 - name: Async Download JBoss EAP Patch from Red Hat Customer Portal
-  get_url:
+  redhat_csp_download:
     url: "{{ jboss_eap_patch_artifact_url }}"
     dest: "{{ jboss_eap_patch_dest }}"
-    url_username: "{{ rhn_username }}"
-    url_password: "{{ rhn_password }}"
+    username: "{{ rhn_username }}"
+    password: "{{ rhn_password }}"
   async: 7200
   poll: 0
   register: jboss_eap_patch_download
@@ -68,11 +68,11 @@
     - jboss_eap
 
 - name: Async Download JBoss EAP from Red Hat Customer Portal
-  get_url:
+  redhat_csp_download:
     url: "{{ jboss_eap_artifact_url }}"
     dest: "{{ jboss_eap_artifact_dl_dest }}"
-    url_username: "{{ rhn_username }}"
-    url_password: "{{ rhn_password }}"
+    username: "{{ rhn_username }}"
+    password: "{{ rhn_password }}"
   async: 7200
   poll: 0
   register: jboss_eap_download
@@ -83,7 +83,7 @@
   async_status: jid={{ jboss_eap_download.ansible_job_id }}
   register: job_result1
   until: job_result1.finished
-  retries: 5
+  retries: 600
   delay: 10
   tags:
     - jboss_eap
@@ -92,7 +92,7 @@
   async_status: jid={{ jboss_eap_patch_download.ansible_job_id }}
   register: job_result2
   until: job_result2.finished
-  retries: 5
+  retries: 600
   delay: 10
   tags:
     - jboss_eap

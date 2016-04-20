@@ -1,5 +1,6 @@
 ---
-jboss_eap_artifact_repo: http://files.justinholmes.co
+jboss_eap_artifact_source: https://access.redhat.com/jbossnetwork/restricted/softwareDownload.html?softwareId=37393
+jboss_eap_patch_artifact_source: https://access.redhat.com/jbossnetwork/restricted/softwareDownload.html?softwareId=43071
 jboss_eap_artifact_name: jboss-eap-6.4.0.zip  #jboss-eap-7.0.0.Beta.zip
 jboss_eap_patch_artifact_name: jboss-eap-6.4.7-patch.zip
 
