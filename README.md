@@ -11,8 +11,23 @@ Requirements
 Required Role Variables
 --------------
 
+Credentitals to interact with the [Red Hat Customer Portal](https://access.redhat.com/downloads/).
 - `rhn_username`
 - `rhn_password`
+
+Download Options
+------------
+
+There are a few different ways that this role can download the required artifacts:
+
+1. Download the artifacts directly to the ansible host machine. This is the default option, but it requires the host to have network connectivity to the [Red Hat Customer Portal](https://access.redhat.com/downloads/).
+  - To enable this option, set the variable: `download_method: csp-to-host`
+2. Use the [copy](http://docs.ansible.com/ansible/copy_module.html) module to transer the files to the host. This option works well when the host system does not have network connectivity to the public internet, as is common in corporate datacenters. You'll need to manually download the artifacts or hook up your own automation (at least for now).
+  To enable this option, set the variable: `download_method: copy-from-client`
+3. TODO - Download the artifacts to the host from a custom file server. Useful when you want to centrally manage the artifacts behind a corporate firewall.
+  - `download_method: file-server-to-host`
+
+
 
 Dependencies
 ------------

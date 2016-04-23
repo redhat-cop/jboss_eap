@@ -5,13 +5,13 @@
 
 - name: Fail for Missing Red Hat Network Username
   fail: msg="This role requires rhn_username to be set and non empty."
-  when: rhn_username is not defined or rhn_username == ''
+  when: download_method == 'csp-to-host' and (rhn_username is not defined or rhn_username == '')
   tags:
     - jboss_eap
 
 - name: Fail for Missing Red Hat Network Password
   fail: msg="This role requires rhn_password to be set and non empty."
-  when: rhn_password is not defined or rhn_password == ''
+  when: download_method == 'csp-to-host' and (rhn_password is not defined or rhn_password == '')
   tags:
     - jboss_eap
 
@@ -19,7 +19,7 @@
 - name: Set JBoss EAP Download Facts
   set_fact:
     jboss_eap_artifact_url: "{{ jboss_eap_artifact_source }}"
-    jboss_eap_artifact_dl_dest: "{{ '/tmp/' + jboss_eap_artifact_name }}"
+    jboss_eap_artifact_tmp_dest: "{{ '/tmp/' + jboss_eap_artifact_name }}"
     jboss_eap_library_dest: "/opt/{{ jboss_eap_user }}"
     jboss_eap_patch_artifact_url: "{{ jboss_eap_patch_artifact_source }}"
     jboss_eap_patch_dest: "/tmp/{{ jboss_eap_patch_artifact_name }}"
@@ -55,52 +55,12 @@
 
 #### Download and install base library and patch
 
-- name: Async Download JBoss EAP Patch from Red Hat Customer Portal
-  redhat_csp_download:
-    url: "{{ jboss_eap_patch_artifact_url }}"
-    dest: "{{ jboss_eap_patch_dest }}"
-    username: "{{ rhn_username }}"
-    password: "{{ rhn_password }}"
-  async: 7200
-  poll: 0
-  register: jboss_eap_patch_download
-  tags:
-    - jboss_eap
-
-- name: Async Download JBoss EAP from Red Hat Customer Portal
-  redhat_csp_download:
-    url: "{{ jboss_eap_artifact_url }}"
-    dest: "{{ jboss_eap_artifact_dl_dest }}"
-    username: "{{ rhn_username }}"
-    password: "{{ rhn_password }}"
-  async: 7200
-  poll: 0
-  register: jboss_eap_download
-  tags:
-    - jboss_eap
-
-- name: 'Check On JBoss EAP Download Completion'
-  async_status: jid={{ jboss_eap_download.ansible_job_id }}
-  register: job_result1
-  until: job_result1.finished
-  retries: 600
-  delay: 10
-  tags:
-    - jboss_eap
-
-- name: 'Check On JBoss EAP Patch Download Completion'
-  async_status: jid={{ jboss_eap_patch_download.ansible_job_id }}
-  register: job_result2
-  until: job_result2.finished
-  retries: 600
-  delay: 10
-  tags:
-    - jboss_eap
+- include: "{{ download_method }}.yml"
 
 - name: Extract JBoss EAP Libraries
   sudo: true
   unarchive:
-    src: "{{ jboss_eap_artifact_dl_dest }}"
+    src: "{{ jboss_eap_artifact_tmp_dest }}"
     dest: "{{ jboss_eap_library_dest }}"
     creates: jboss-eap-6.4
     copy: no

@@ -1,0 +1,14 @@
+---
+- name: Copy JBoss EAP Patch to Host
+  copy:
+    src: "{{ jboss_eap_patch_artifact_name }}"
+    dest: "{{ jboss_eap_patch_dest }}"
+  tags:
+    - jboss_eap
+
+- name: Copy JBoss EAP to Host
+  copy:
+    src: "{{ jboss_eap_artifact_name }}"
+    dest: "{{ jboss_eap_artifact_tmp_dest }}"
+  tags:
+    - jboss_eap
