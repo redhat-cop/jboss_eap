@@ -10,3 +10,5 @@ jboss_eap_bind_web_interface: true
 jboss_eap_bind_management_interface: false
 
 jboss_eap_user: jboss-as
+
+download_method: csp-to-host # csp-to-host | copy-from-client | file-server-to-host
