@@ -10,3 +10,6 @@ jboss_eap_bind_web_interface: true
 jboss_eap_bind_management_interface: false
 
 jboss_eap_user: jboss-as
+
+# ussually this is set at the playbook level
+#transfer_method: # csp-to-host | copy-from-contoller

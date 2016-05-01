@@ -3,15 +3,21 @@
 #### Defensive Programming
 # https://github.com/openshift/openshift-ansible/blob/master/docs/best_practices_guide.adoc
 
+- name: Fail for Missing Transfer Method
+  fail: msg="This role requires transfer_method to be set and non empty. See the README"
+  when: transfer_method is not defined or transfer_method == ''
+  tags:
+    - jboss_eap
+
 - name: Fail for Missing Red Hat Network Username
   fail: msg="This role requires rhn_username to be set and non empty."
-  when: rhn_username is not defined or rhn_username == ''
+  when: transfer_method == 'csp-to-host' and (rhn_username is not defined or rhn_username == '')
   tags:
     - jboss_eap
 
 - name: Fail for Missing Red Hat Network Password
   fail: msg="This role requires rhn_password to be set and non empty."
-  when: rhn_password is not defined or rhn_password == ''
+  when: transfer_method == 'csp-to-host' and (rhn_password is not defined or rhn_password == '')
   tags:
     - jboss_eap
 
@@ -66,6 +72,7 @@
   register: jboss_eap_patch_download
   tags:
     - jboss_eap
+  when: transfer_method == 'csp-to-host'
 
 - name: Async Download JBoss EAP from Red Hat Customer Portal
   redhat_csp_download:
@@ -78,6 +85,7 @@
   register: jboss_eap_download
   tags:
     - jboss_eap
+  when: transfer_method == 'csp-to-host'
 
 - name: 'Check On JBoss EAP Download Completion'
   async_status: jid={{ jboss_eap_download.ansible_job_id }}
@@ -87,6 +95,7 @@
   delay: 10
   tags:
     - jboss_eap
+  when: transfer_method == 'csp-to-host'
 
 - name: 'Check On JBoss EAP Patch Download Completion'
   async_status: jid={{ jboss_eap_patch_download.ansible_job_id }}
@@ -96,6 +105,25 @@
   delay: 10
   tags:
     - jboss_eap
+  when: transfer_method == 'csp-to-host'
+
+- debug: msg="{{transfer_method }}"
+
+- name: Copy JBoss EAP
+  copy:
+    src: "{{ jboss_eap_artifact_name }}"
+    dest: "{{ jboss_eap_artifact_dl_dest }}"
+  tags:
+    - jboss_eap
+  when: transfer_method == 'copy-from-controller'
+
+- name: Copy JBoss EAP Patch
+  copy:
+    src: "{{ jboss_eap_patch_artifact_name }}"
+    dest: "{{ jboss_eap_patch_dest }}"
+  tags:
+    - jboss_eap
+  when: transfer_method == 'copy-from-controller'
 
 - name: Extract JBoss EAP Libraries
   sudo: true
