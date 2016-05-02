@@ -3,21 +3,17 @@ Ansible JBoss EAP Role
 
 A role to install JBoss Enterprise Application Platform on RHEL7. Intended to be used with [JBoss Middleware Playbooks](https://github.com/rhtconsulting/ansible-middleware-playbooks)
 
-Requirements
+Transfer Method
 ------------
 
-- Valid subscription for JBoss EAP. This role retrieves all binaries from the [Red Hat Customer Portal](https://access.redhat.com/downloads/)
+This role supports a few different mechanism for transferring the product zip files to the
 
-Required Role Variables
---------------
-
-- `rhn_username`
-- `rhn_password`
 
 Dependencies
 ------------
 
 - java
+- unzip
 
 Example Playbook
 ----------------
