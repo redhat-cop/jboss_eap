@@ -6,7 +6,7 @@ A role to install JBoss Enterprise Application Platform on RHEL7. Intended to be
 Transfer Method
 ------------
 
-This role supports a few different mechanism for transferring the product zip files to the
+This role supports a few different mechanism for transferring the product zip files to the target host. These are documented on [the main playbooks README](https://github.com/rhtconsulting/ansible-middleware-playbooks), as the methods are supported across a variety of roles.
 
 
 Dependencies
@@ -18,7 +18,7 @@ Dependencies
 Example Playbook
 ----------------
 
-[JBoss EAP 6.4.0 on RHEL 7](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/eap6.4-centos7.yml)
+[JBoss EAP 6.4 on RHEL 7](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/eap6.4-centos7.yml)
 
 License
 -------
