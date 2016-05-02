@@ -18,7 +18,8 @@ Dependencies
 Example Playbook
 ----------------
 
-[JBoss EAP 6.4 on RHEL 7](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/eap6.4-centos7.yml)
+[JBoss EAP 6.4 on CentOS 7](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/eap6.4-centos7.yml)
+[JBoss EAP 6.4 on RHEL 7](https://github.com/rhtconsulting/ansible-middleware-playbooks/blob/master/eap6.4-rhel7.yml)
 
 License
 -------
