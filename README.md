@@ -15,6 +15,8 @@ Dependencies
 - java
 - unzip
 
+Our playbooks provide these dependencies in a [common role](https://github.com/rhtconsulting/ansible-middleware-playbooks/tree/master/roles/common), but this there is no explicitly ansible dependency to allow end users more options.
+
 Example Playbooks
 ----------------
 

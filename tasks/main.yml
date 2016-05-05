@@ -107,8 +107,6 @@
     - jboss_eap
   when: transfer_method == 'csp-to-host'
 
-- debug: msg="{{transfer_method }}"
-
 - name: Copy JBoss EAP
   copy:
     src: "{{ jboss_eap_artifact_name }}"
