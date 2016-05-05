@@ -72,7 +72,7 @@
   register: jboss_eap_patch_download
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host'
+  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true
 
 - name: Async Download JBoss EAP from Red Hat Customer Portal
   redhat_csp_download:
@@ -105,7 +105,7 @@
   delay: 10
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host'
+  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true
 
 - name: Copy JBoss EAP
   copy:
@@ -121,7 +121,7 @@
     dest: "{{ jboss_eap_patch_dest }}"
   tags:
     - jboss_eap
-  when: transfer_method == 'copy-from-controller'
+  when: transfer_method == 'copy-from-controller' and jboss_eap_apply_patch == true
 
 - name: Extract JBoss EAP Libraries
   sudo: true
@@ -135,12 +135,25 @@
   tags:
     - jboss_eap
 
+# Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
+- name: Determine if the Patch Can Be Applied
+  become: yes
+  become_user: "{{ jboss_eap_user }}"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
+  register: patch_info_result
+  tags:
+    - jboss_eap
+    - dev
+  when: jboss_eap_apply_patch == true
+
 - name: Apply JBoss EAP Patch
   become: yes
   become_user: "{{ jboss_eap_user }}"
-  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }}'"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }} --verbose'"
   tags:
     - jboss_eap
+    - dev
+  when: jboss_eap_apply_patch == true and 'base' in patch_info_result.stdout
 
 
 #### Set Sensible Defaults For Runtime
