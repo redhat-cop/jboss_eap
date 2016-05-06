@@ -59,6 +59,27 @@
 
 - include: jboss_service.yml
 
+#### Defensive Programming To Check If EAP Is Already Installed
+
+- name: Check Existence of Libraries
+  sudo: true
+  stat:
+    path: "{{ jboss_eap_library_dest + '/jboss-eap-6.4/version.txt'}}"
+  register: jboss_eap_exists
+  tags:
+    - jboss_eap
+
+# Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
+- name: Determine if the Patch Can Be Applied
+  become: yes
+  become_user: "{{ jboss_eap_user }}"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
+  register: patch_info_result
+  tags:
+    - jboss_eap
+    - dev
+  when: jboss_eap_apply_patch == true and jboss_eap_exists.stat.exists == true
+
 #### Download and install base library and patch
 
 - name: Async Download JBoss EAP Patch from Red Hat Customer Portal
@@ -72,7 +93,7 @@
   register: jboss_eap_patch_download
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true
+  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Async Download JBoss EAP from Red Hat Customer Portal
   redhat_csp_download:
@@ -85,7 +106,7 @@
   register: jboss_eap_download
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host'
+  when: transfer_method == 'csp-to-host' and jboss_eap_exists.stat.exists == false
 
 - name: 'Check On JBoss EAP Download Completion'
   async_status: jid={{ jboss_eap_download.ansible_job_id }}
@@ -95,7 +116,7 @@
   delay: 10
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host'
+  when: transfer_method == 'csp-to-host' and jboss_eap_exists.stat.exists == false
 
 - name: 'Check On JBoss EAP Patch Download Completion'
   async_status: jid={{ jboss_eap_patch_download.ansible_job_id }}
@@ -105,7 +126,7 @@
   delay: 10
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true
+  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Copy JBoss EAP
   copy:
@@ -113,7 +134,7 @@
     dest: "{{ jboss_eap_artifact_dl_dest }}"
   tags:
     - jboss_eap
-  when: transfer_method == 'copy-from-controller'
+  when: transfer_method == 'copy-from-controller' and jboss_eap_exists.stat.exists == false
 
 - name: Copy JBoss EAP Patch
   copy:
@@ -121,7 +142,7 @@
     dest: "{{ jboss_eap_patch_dest }}"
   tags:
     - jboss_eap
-  when: transfer_method == 'copy-from-controller' and jboss_eap_apply_patch == true
+  when: transfer_method == 'copy-from-controller' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Extract JBoss EAP Libraries
   sudo: true
@@ -132,28 +153,21 @@
     copy: no
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
+  notify: Restart and Enable jboss-as Service
   tags:
     - jboss_eap
+  when: jboss_eap_exists.stat.exists == false
 
-# Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
-- name: Determine if the Patch Can Be Applied
-  become: yes
-  become_user: "{{ jboss_eap_user }}"
-  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
-  register: patch_info_result
-  tags:
-    - jboss_eap
-    - dev
-  when: jboss_eap_apply_patch == true
-
+# Patches can be applied while EAP is running
 - name: Apply JBoss EAP Patch
   become: yes
   become_user: "{{ jboss_eap_user }}"
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }} --verbose'"
+  notify: Restart and Enable jboss-as Service
   tags:
     - jboss_eap
     - dev
-  when: jboss_eap_apply_patch == true and 'base' in patch_info_result.stdout
+  when: jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 
 #### Set Sensible Defaults For Runtime
@@ -178,16 +192,5 @@
   lineinfile:
     dest: "{{ jboss_eap_runtime_conf_file }}"
     line: "JAVA_OPTS=\"$JAVA_OPTS -Duser.timezone={{jboss_eap_logging_timezone}}\""
-  tags:
-    - jboss_eap
-
-
-### Fire it up
-
-- name: Start and Enable jboss-as Service
-  service:
-    name: jboss-as-standalone.service
-    state: started
-    enabled: yes
   tags:
     - jboss_eap
