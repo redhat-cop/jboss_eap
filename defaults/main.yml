@@ -8,6 +8,7 @@ jboss_eap_logging_timezone: America/New_York
 
 jboss_eap_bind_web_interface: true
 jboss_eap_bind_management_interface: false
+jboss_eap_apply_patch: true
 
 jboss_eap_user: jboss-as
 
