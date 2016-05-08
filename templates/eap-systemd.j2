@@ -1,0 +1,18 @@
+;
+; {{ansible_managed}}
+;
+[Unit]
+Description={{product_name|upper}} {{product_version}}
+After=syslog.target network.target
+
+[Service]
+Type=forking
+Restart=on-failure
+EnvironmentFile=/etc/jboss-as/jboss-as.conf
+RestartSec=10
+ExecStart=/etc/init.d/jboss-as-{{jboss_config}} start
+ExecStop=/etc/init.d/jboss-as-{{jboss_config}} stop
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
