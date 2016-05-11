@@ -22,22 +22,22 @@ SHUTDOWN_WAIT=30
 
 # Location to keep the console log
 #
-JBOSS_CONSOLE_LOG=/var/log/jboss-as/console.log
+JBOSS_CONSOLE_LOG={{jboss_eap_service_log_dir}}/console.log
 
 #
 # JBoss Config
 #
-JBOSS_CONFIG={{jboss_config ~ ".xml"}}
+JBOSS_CONFIG={{jboss_eap_config ~ ".xml"}}
 
 #
 # JBoss Startup script with params
 #
-{% if jboss_config == 'domain' %}
+{% if jboss_eap_config == 'domain' %}
 
 #
 # JBOSS Host Config XML
 #
-{% if slave is defined and slave %}
+{% if jboss_eap_slave is defined and jboss_eap_slave %}
 JBOSS_HOST_CONFIG="host-slave.xml"
 {% else %}
 JBOSS_HOST_CONFIG="host-master.xml"
@@ -46,7 +46,7 @@ JBOSS_HOST_CONFIG="host-master.xml"
 #
 # JBOSS Script to be used to start domain mode
 #
-JBOSS_SCRIPT=$JBOSS_HOME/bin/domain.sh -Djboss.messaging.cluster.password={{cluster_password}} {% if slave %} {% if domain_controller_address is defined %}  {{ '-Djboss.domain.master.address='~ domain_controller_address }} {% endif %} {% endif %}
+JBOSS_SCRIPT=$JBOSS_HOME/bin/domain.sh -Djboss.messaging.cluster.password={{jboss_eap_cluster_password}} {% if jboss_eap_slave %} {% if domain_controller_address is defined %}  {{ '-Djboss.domain.master.address='~ domain_controller_address }} {% endif %} {% endif %}
 
 {% endif %}
 
@@ -54,14 +54,18 @@ JBOSS_SCRIPT=$JBOSS_HOME/bin/domain.sh -Djboss.messaging.cluster.password={{clus
 # JBoss Bind Address, the -bmanagement parameter to start JBOSS
 # it will bind to the respective host vars ip variable
 #
-
-JBOSS_MANAGEMENT_ADDRESS={{bind_mgmt_address}}
+{% if jboss_eap_bind_management_interface %}
+JBOSS_MANAGEMENT_ADDRESS={{jboss_eap_bind_management_address}}
+{% endif %}
 
 #
 # JBoss Bind Addres, the -b parameter to start JBOSS
 # it will bind to the respective host vars ip variable
 #
-JBOSS_BIND_ADDRESS={{bind_http_address}}
+{% if jboss_eap_bind_web_interface %}
+JBOSS_BIND_ADDRESS={{jboss_eap_bind_web_address}}
+{% endif %}
+
 
 #
 # JBoss unsecure interface address -Djboss.bind.address.unsecure
@@ -69,11 +73,11 @@ JBOSS_BIND_ADDRESS={{bind_http_address}}
 # 
 #
 
-JBOSS_UNSECURE_ADDRESS={{bind_unsecure_address}}
+JBOSS_UNSECURE_ADDRESS={{jboss_eap_bind_unsecure_address}}
 
 #
 # JBoss Port Offset - the -Djboss.socket.binding.port-offset value
 # if not specifed will default to 0
 #
-JBOSS_PORT_OFFSET={{port_offset}}
+JBOSS_PORT_OFFSET={{jboss_eap_facted_port_offset}}
 
