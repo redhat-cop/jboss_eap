@@ -4,4 +4,5 @@ python:
 # command to install dependencies
 install:  pip install ansible
 # command to run tests
-script: "curl www.google.com"
+script:
+  - ansible-playbook -i tests/inventory tests/main.yml --syntax-check
