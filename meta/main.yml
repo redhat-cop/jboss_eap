@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Red Hat Consulting
-  description: Role to install JBoss Application Platform
+  description: Role for Red Hat JBoss Enterprise Application Platform (EAP)
   company: Red Hat
   license: license (Apache)
   min_ansible_version: 1.8
