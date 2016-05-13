@@ -6,3 +6,6 @@ install:  pip install ansible==1.9.6
 # command to run tests
 script:
   - ansible-playbook -i tests/inventory tests/main.yml --syntax-check
+
+notifications:
+  slack: redhat:GhPEcNzYddt4Pf9OJW2wcyCK
