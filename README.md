@@ -1,4 +1,4 @@
-Ansible JBoss EAP Role
+Ansible JBoss EAP Role [![Build Status](https://travis-ci.org/rhtconsulting/jboss_eap.svg)](https://travis-ci.org/rhtconsulting/jboss_eap)
 =================
 
 A role to install JBoss Enterprise Application Platform on RHEL7. Intended to be used with [JBoss Middleware Playbooks](https://github.com/rhtconsulting/ansible-middleware-playbooks)

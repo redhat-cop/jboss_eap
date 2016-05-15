@@ -1,0 +1,7 @@
+- hosts: jboss_eap_centos_hosts
+  gather_facts: true
+  vars:
+    transfer_method: csp-to-host
+  roles:
+  - jboss_common
+  - jboss_eap
