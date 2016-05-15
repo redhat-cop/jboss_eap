@@ -9,3 +9,17 @@
     enabled: yes
   tags:
     - jboss_eap
+
+- name: Enable jboss-as Service
+  service:
+    name: jboss-as-standalone.service
+    enabled: yes
+  tags:
+    - jboss_eap
+
+- name: Restart jboss-as Service
+  service:
+    name: jboss-as-standalone.service
+    state: restarted
+  tags:
+    - jboss_eap

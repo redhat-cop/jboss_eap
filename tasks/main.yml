@@ -29,6 +29,7 @@
     jboss_eap_library_dest: "/opt/{{ jboss_eap_user }}"
     jboss_eap_patch_artifact_url: "{{ jboss_eap_patch_artifact_source }}"
     jboss_eap_patch_dest: "/tmp/{{ jboss_eap_patch_artifact_name }}"
+    jboss_eap_facted_port_offset: "{{jboss_eap_port_offset * 100 }}"
   tags:
     - jboss_eap
 
@@ -50,7 +51,6 @@
 - name: Set JBoss EAP Service Files Facts
   set_fact:
     jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/{{ jboss_eap_user }}.conf"
-    jboss_eap_runtime_conf_file: "{{ jboss_eap_home }}/bin/standalone.conf"
     jboss_eap_standalone_service_file: "/etc/systemd/system/{{ jboss_eap_user }}-standalone.service"
   tags:
     - jboss_eap
@@ -130,7 +130,7 @@
 
 - name: Copy JBoss EAP
   copy:
-    src: "{{ jboss_eap_artifact_name }}"
+    src: "{{ jboss_eap_artifact_url }}"
     dest: "{{ jboss_eap_artifact_dl_dest }}"
   tags:
     - jboss_eap
@@ -153,7 +153,7 @@
     copy: no
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-  notify: Restart and Enable jboss-as Service
+  notify: Enable jboss-as Service
   tags:
     - jboss_eap
   when: jboss_eap_exists.stat.exists == false
@@ -169,24 +169,21 @@
     - dev
   when: jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
+# Copy the init.d scripts, this is done here to ensure that we overwrite the 
+# file from the JBoss EAP post unarchive
+- name: "Copy EAP service init.d scripts"
+  template: 
+    src: "jboss-as-{{jboss_eap_config}}.sh.j2"
+    dest: "{{jboss_eap_home}}/bin/init.d/jboss-as-{{jboss_eap_config}}.sh"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    mode: "755"
+    backup: yes
+  notify: Restart jboss-as Service
+  tags:
+    - jboss_eap
 
 #### Set Sensible Defaults For Runtime
-
-- name: Set Web Bind Address
-  lineinfile:
-    dest: "{{ jboss_eap_runtime_conf_file }}"
-    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address=0.0.0.0"
-  when: jboss_eap_bind_web_interface
-  tags:
-    - jboss_eap
-
-- name: Set Management Bind Address
-  lineinfile:
-    dest: "{{ jboss_eap_runtime_conf_file }}"
-    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management=0.0.0.0"
-  when: jboss_eap_bind_management_interface
-  tags:
-    - jboss_eap
 
 - name: Set User Time Zone for Logs
   lineinfile:

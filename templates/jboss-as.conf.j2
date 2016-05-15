@@ -1,0 +1,83 @@
+#
+# {{ansible_managed}}
+#
+# General configuration for the init.d scripts,
+# not necessarily for JBoss AS itself.
+
+# JBOSS_HOME
+#
+JBOSS_HOME={{jboss_eap_home}}
+
+# The username who should own the process.
+#
+JBOSS_USER={{jboss_eap_user}}
+
+# The amount of time to wait for startup
+#
+STARTUP_WAIT=30
+
+# The amount of time to wait for shutdown
+#
+SHUTDOWN_WAIT=30
+
+# Location to keep the console log
+#
+JBOSS_CONSOLE_LOG={{jboss_eap_service_log_dir}}/console.log
+
+#
+# JBoss Config
+#
+JBOSS_CONFIG={{jboss_eap_config ~ ".xml"}}
+
+#
+# JBoss Startup script with params
+#
+{% if jboss_eap_config == 'domain' %}
+
+#
+# JBOSS Host Config XML
+#
+{% if jboss_eap_slave is defined and jboss_eap_slave %}
+JBOSS_HOST_CONFIG="host-slave.xml"
+{% else %}
+JBOSS_HOST_CONFIG="host-master.xml"
+{% endif %}
+
+#
+# JBOSS Script to be used to start domain mode
+#
+JBOSS_SCRIPT=$JBOSS_HOME/bin/domain.sh -Djboss.messaging.cluster.password={{jboss_eap_cluster_password}} {% if jboss_eap_slave %} {% if domain_controller_address is defined %}  {{ '-Djboss.domain.master.address='~ domain_controller_address }} {% endif %} {% endif %}
+
+{% endif %}
+
+#
+# JBoss Bind Address, the -bmanagement parameter to start JBOSS
+# it will bind to the respective host vars ip variable
+#
+{% if jboss_eap_bind_management_interface %}
+JBOSS_MANAGEMENT_ADDRESS={{jboss_eap_bind_management_address}}
+{% endif %}
+
+#
+# JBoss Bind Addres, the -b parameter to start JBOSS
+# it will bind to the respective host vars ip variable
+#
+{% if jboss_eap_bind_web_interface %}
+JBOSS_BIND_ADDRESS={{jboss_eap_bind_web_address}}
+{% endif %}
+
+
+#
+# JBoss unsecure interface address -Djboss.bind.address.unsecure
+# or -bunsecure=
+# 
+#
+
+JBOSS_UNSECURE_ADDRESS={{jboss_eap_bind_unsecure_address}}
+
+#
+# JBoss Port Offset - the -Djboss.socket.binding.port-offset value
+# if not specifed will default to 0
+#
+JBOSS_PORT_OFFSET={{jboss_eap_facted_port_offset}}
+

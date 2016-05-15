@@ -45,12 +45,14 @@
     - jboss_eap
 
 - name: Copy JBoss EAP Service Conf File
-  copy:
+  template:
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-    src: jboss-as.conf
+    src: jboss-as.conf.j2
     dest: "{{ jboss_eap_service_conf_file }}"
     mode: "755"
+  notify:
+    - Reload systemd
   tags:
     - jboss_eap
 
@@ -75,10 +77,10 @@
     - jboss_eap
 
 - name: Copy JBoss EAP systemd Unit File
-  copy:
+  template:
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-    src: jboss-as-standalone.service
+    src: eap-systemd.j2
     dest: "{{ jboss_eap_standalone_service_file }}"
     mode: "755"
   notify:

@@ -1,0 +1,18 @@
+;
+; {{ansible_managed}}
+;
+[Unit]
+Description={{jboss_eap_product_name|upper}} {{jboss_eap_product_version}}
+After=syslog.target network.target
+
+[Service]
+Type=forking
+Restart=on-failure
+EnvironmentFile={{ jboss_eap_service_conf_file }}
+RestartSec=10
+ExecStart={{jboss_eap_home}}/bin/init.d/jboss-as-{{jboss_eap_config}}.sh start
+ExecStop={{jboss_eap_home}}/bin/init.d/jboss-as-{{jboss_eap_config}}.sh stop
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

@@ -14,3 +14,24 @@ jboss_eap_user: jboss-as
 
 # ussually this is set at the playbook level
 #transfer_method: # csp-to-host | copy-from-contoller
+
+# Variables used in JBOSS_CONF
+# The JBOSS configuration to use such as standalone, standalone-ha, domain
+jboss_eap_config: standalone
+# The JBoss management interface bind address
+jboss_eap_bind_management_address: 0.0.0.0
+# The JBoss Http interface bind address
+jboss_eap_bind_web_address: 0.0.0.0
+# The JBoss secure bind address
+jboss_eap_bind_unsecure_address: 0.0.0.0
+# The Portal offset that will be used for JBoss service ports
+jboss_eap_port_offset: 0
+# Whether the node is slave or not, used when running JBoss in domain mode
+jboss_eap_slave: false
+
+# Domain mode vaiable 
+jboss_eap_cluster_password:
+
+# Misc variables to add information to systemd service
+jboss_eap_product_name: JBoss EAP
+jboss_eap_product_version: 6.4.0
