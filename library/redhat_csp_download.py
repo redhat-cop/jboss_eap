@@ -4,8 +4,17 @@
 
 ##############################################################################
 
-import requests
-import lxml.html
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
+
+try:
+    import lxml.html
+    HAS_LXML = True
+except ImportError:
+    HAS_LXML = False
 
 DOCUMENTATION = '''
 ---
@@ -102,6 +111,12 @@ def main():
         add_file_common_args=True
     )
 
+    if not HAS_REQUESTS:
+        module.fail_json(msg='requests is required for this module')
+
+    if not HAS_LXML:
+        module.fail_json(msg='lxml is required for this module')
+
     username = module.params.get('username')
     password = module.params.get('password')
     url = module.params.get('url')
@@ -118,7 +133,10 @@ def main():
             module.exit_json(msg="file already exists but file attributes changed", dest=dest, url=url, changed=changed)
         module.exit_json(msg="file already exists", dest=dest, url=url, changed=changed)
 
-    get_csp_file(module,username,password,url,dest)
+    try:
+        get_csp_file(module,username,password,url,dest)
+    except Exception as ex:
+        module.fail_json(msg=str(ex))
 
     changed = True
 
