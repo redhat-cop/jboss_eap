@@ -2,7 +2,10 @@ language: python
 python:
   - "2.7"
 # command to install dependencies
-install:  pip install ansible==1.9.6
+install:
+  - pip install ansible==1.9.6
+  - printf '[defaults]\nroles_path = ../' > ansible.cfg
+  - ansible-galaxy install -r tests/requirements.yml
 # command to run tests
 script:
   - ansible-playbook -i tests/inventory tests/syntax-check.yml --syntax-check

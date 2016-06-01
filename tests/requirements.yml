@@ -1,2 +1,5 @@
 - src: rhtconsulting.jboss_common
   name: jboss_common
+
+- src: sabre1041.redhat-csp-download
+  name: redhat-csp-download
