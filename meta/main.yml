@@ -13,5 +13,5 @@ galaxy_info:
    - java
    - jboss
    - eap
-dependencies: []
-
+dependencies:
+- { role: redhat-csp-download }
