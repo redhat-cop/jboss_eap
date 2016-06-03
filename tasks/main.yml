@@ -49,9 +49,9 @@
 
 - name: Set JBoss EAP Service Files Facts
   set_fact:
-    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/{{ jboss_eap_user }}.conf"
+    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/jboss-as.conf"
+    jboss_eap_bin_dir: "{{ jboss_eap_home }}/bin"
     jboss_eap_runtime_conf_file: "{{ jboss_eap_home }}/bin/standalone.conf"
-    jboss_eap_standalone_service_file: "/etc/systemd/system/{{ jboss_eap_user }}-standalone.service"
   tags:
     - jboss_eap
 
@@ -153,7 +153,6 @@
     copy: no
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-  notify: Restart and Enable jboss-as Service
   tags:
     - jboss_eap
   when: jboss_eap_exists.stat.exists == false
@@ -163,19 +162,38 @@
   become: yes
   become_user: "{{ jboss_eap_user }}"
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }} --verbose'"
-  notify: Restart and Enable jboss-as Service
+  notify: 
+    - Add jboss-as Service
+    - Restart jboss-as Service
+    - Verify jboss-as is running
   tags:
     - jboss_eap
     - dev
   when: jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
+## Copy jboss-as-{{jboss_eap_mode}}.sh file to /etc/init.d 
+- name: Copy JBoss EAP Service File
+  sudo: true
+  copy:
+    src: "{{jboss_eap_bin_dir}}/init.d/jboss-as-{{jboss_eap_mode}}.sh"
+    dest: /etc/init.d
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    mode: "755"
+  notify:
+    - Add jboss-as Service
+    - Restart jboss-as Service
+    - Verify jboss-as is running
+  tags:
+    - jboss_eap
 
 #### Set Sensible Defaults For Runtime
 
 - name: Set Web Bind Address
   lineinfile:
     dest: "{{ jboss_eap_runtime_conf_file }}"
-    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address=0.0.0.0"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address={{jboss_eap_bind_web_address}}"
   when: jboss_eap_bind_web_interface
   tags:
     - jboss_eap
@@ -183,7 +201,7 @@
 - name: Set Management Bind Address
   lineinfile:
     dest: "{{ jboss_eap_runtime_conf_file }}"
-    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management=0.0.0.0"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management={{jboss_eap_bind_management_address}}"
   when: jboss_eap_bind_management_interface
   tags:
     - jboss_eap
