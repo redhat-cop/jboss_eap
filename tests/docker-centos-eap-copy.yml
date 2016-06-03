@@ -14,31 +14,6 @@
     - { role: jboss_common, transfer_method: copy-from-controller }
     - { role: jboss_eap, transfer_method: copy-from-controller } # role under test
 
-  post_tasks:
-  - name: Get Container IP
-    local_action:
-      module: "shell"
-      args: "{{playbook_dir}}/files/docker_inspect.sh provision_docker_host_one"
-    register: provision_docker_ip
-    tags:
-    - tests
-
-  - debug: msg="http://{{provision_docker_ip.stdout}}:8080"
-    tags:
-    - tests
-
-  - uri:
-      url: "http://{{provision_docker_ip.stdout}}:8080"
-      return_content: yes
-    register: webpage
-    tags:
-    - tests
-
-  - fail: msg='jboss eap service is not happy'
-    when: "'Your Red Hat JBoss Enterprise Application Platform is running.' not in webpage.content"
-    tags:
-    - tests
-
 
 - name: Remove docker containers
   hosts: docker_containers
