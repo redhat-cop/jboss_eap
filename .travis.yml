@@ -24,7 +24,7 @@ services:
 
 script:
   - ansible-playbook -i tests/inventory tests/syntax-check.yml --syntax-check
-  - ansible-playbook -i tests/inventory  tests/dockerc-centos-eap-copy.yml
+  - ansible-playbook -i tests/inventory  tests/docker-centos-eap-copy.yml
 
 notifications:
   slack: redhat:GhPEcNzYddt4Pf9OJW2wcyCK
