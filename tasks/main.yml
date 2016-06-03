@@ -38,10 +38,16 @@
   tags:
     - jboss_eap
 
+##
+# The version compare allows to decide what version of EAP that is provisioned and 
+# use the appropriate init.d scripts and init.d configuraitons
+# In EAP6 its jboss-as-[standalone|domain].sh and jboss-as.conf respectively
+# In EAP7 its jboss-eap-rhel.sh and jboss-eap.conf respectively
+##
 - name: Set JBoss EAP Service Directories Facts
   set_fact:
-    jboss_eap_home: "{{ jboss_eap_library_dest }}/jboss-eap-6.4"
-    jboss_eap_service_conf_dir: "/etc/{{ jboss_eap_user }}"
+    jboss_eap_home: "{{ jboss_eap_library_dest }}/jboss-eap-{{jboss_eap_base_version}}"
+    jboss_eap_service_conf_dir: "/etc/{{ (jboss_eap_base_version | version_compare('7.0','<')) | ternary(jboss_eap_user,'default')}}"
     jboss_eap_service_log_dir: "/var/log/{{ jboss_eap_user }}"
     jboss_eap_service_data_dir: "/var/run/{{ jboss_eap_user }}"
   tags:
@@ -49,11 +55,34 @@
 
 - name: Set JBoss EAP Service Files Facts
   set_fact:
-    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/{{ jboss_eap_user }}.conf"
+    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/{{ (jboss_eap_base_version | version_compare('7.0','<')) | ternary('jboss-as.conf','jboss-eap.conf')}}"
+    jboss_eap_bin_dir: "{{ jboss_eap_home }}/bin"
     jboss_eap_runtime_conf_file: "{{ jboss_eap_home }}/bin/standalone.conf"
-    jboss_eap_standalone_service_file: "/etc/systemd/system/{{ jboss_eap_user }}-standalone.service"
+    jboss_eap_service_file: "{{ (jboss_eap_base_version | version_compare('7.0','<')) | ternary('jboss-as-'+jboss_eap_mode+'.sh','jboss-eap-rhel.sh')}}"
   tags:
     - jboss_eap
+
+##
+# RHEL 6 expects init.d service with extension
+##
+- name: Set JBoss EAP Service Name EL 6
+  set_fact: 
+    jboss_eap_service_name: "{{jboss_eap_service_file}}"
+  when: (ansible_distribution_major_version | version_compare('6','<='))
+  tags:
+    - jboss_eap
+
+##
+# RHEL 7 expects init.d service without extension
+##
+- name: Set JBoss EAP Service Name EL 7
+  set_fact: 
+    jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
+  when: (ansible_distribution_major_version | version_compare('7','>='))
+  tags:
+    - jboss_eap
+
+- debug: msg="EAP HOME {{ jboss_eap_home }} and Service file {{jboss_eap_service_file}}  Service Name {{jboss_eap_service_name}}"
 
 #### Create Service Account
 
@@ -153,7 +182,6 @@
     copy: no
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-  notify: Restart and Enable jboss-as Service
   tags:
     - jboss_eap
   when: jboss_eap_exists.stat.exists == false
@@ -163,19 +191,38 @@
   become: yes
   become_user: "{{ jboss_eap_user }}"
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }} --verbose'"
-  notify: Restart and Enable jboss-as Service
+  notify: 
+    - Add jboss-as Service
+    - Restart jboss-as Service
+    - Verify jboss-as is running
   tags:
     - jboss_eap
     - dev
   when: jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
+## Copy jboss-as-{{jboss_eap_mode}}.sh or jboss-eap-rhel.sh file to /etc/init.d 
+- name: Copy JBoss EAP Service File
+  sudo: true
+  copy:
+    src: "{{jboss_eap_bin_dir}}/init.d/{{jboss_eap_service_file}}"
+    dest: /etc/init.d
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    mode: "755"
+  notify:
+    - Add jboss-as Service
+    - Restart jboss-as Service
+    - Verify jboss-as is running
+  tags:
+    - jboss_eap
 
 #### Set Sensible Defaults For Runtime
 
 - name: Set Web Bind Address
   lineinfile:
     dest: "{{ jboss_eap_runtime_conf_file }}"
-    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address=0.0.0.0"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address={{jboss_eap_bind_web_address}}"
   when: jboss_eap_bind_web_interface
   tags:
     - jboss_eap
@@ -183,7 +230,7 @@
 - name: Set Management Bind Address
   lineinfile:
     dest: "{{ jboss_eap_runtime_conf_file }}"
-    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management=0.0.0.0"
+    line: JAVA_OPTS="$JAVA_OPTS -Djboss.bind.address.management={{jboss_eap_bind_management_address}}"
   when: jboss_eap_bind_management_interface
   tags:
     - jboss_eap
