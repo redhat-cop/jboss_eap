@@ -29,7 +29,7 @@
 - name: Restart jboss-as Service
   sudo: true
   service: 
-    name: "{{ jboss_eap_service_file | splitext | first }}"
+    name: "{{ jboss_eap_service_name }}"
     state: restarted
   tags:
     - jboss_eap
