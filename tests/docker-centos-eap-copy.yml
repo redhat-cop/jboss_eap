@@ -1,0 +1,57 @@
+---
+- name: Bring up docker containers
+  hosts: localhost
+  vars_files:
+  - vars/cloud-inventory.yml
+
+  roles:
+    - { role: provision_docker, provision_docker_privileged: "{{ true }}", provision_docker_inventory: "{{ inventory }}" }
+
+
+- name: Run Tests
+  hosts: docker_containers
+  roles:
+    - { role: jboss_common, transfer_method: copy-from-controller }
+    - { role: jboss_eap, transfer_method: copy-from-controller } # role under test
+
+  post_tasks:
+  - name: Get Container IP
+    local_action:
+      module: "shell"
+      args: "{{playbook_dir}}/files/docker_inspect.sh provision_docker_host_one"
+    register: provision_docker_ip
+    tags:
+    - tests
+
+  - debug: msg="http://{{provision_docker_ip.stdout}}:8080"
+    tags:
+    - tests
+
+  - uri:
+      url: "http://{{provision_docker_ip.stdout}}:8080"
+      return_content: yes
+    register: webpage
+    tags:
+    - tests
+
+  - fail: msg='jboss eap service is not happy'
+    when: "'Your Red Hat JBoss Enterprise Application Platform is running.' not in webpage.content"
+    tags:
+    - tests
+
+
+- name: Remove docker containers
+  hosts: docker_containers
+  vars_files:
+  - vars/cloud-inventory.yml
+
+  tasks:
+  - local_action:
+      module: docker
+      name: "{{ item.name }}"
+      state: absent
+      image: "{{ item.image }}"
+    with_items:
+    - "{{ inventory }}"
+    tags:
+    - remove-containers
