@@ -1,14 +1,30 @@
+sudo: required
 language: python
 python:
   - "2.7"
-# command to install dependencies
+env:
+  global:
+    - ANSIBLE_HOST_KEY_CHECKING=False
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y -o Dpkg::Options::="--force-confnew" docker-engine
+
 install:
-  - pip install ansible==1.9.6
-  - printf '[defaults]\nroles_path = ../' > ansible.cfg
-  - ansible-galaxy install -r tests/requirements.yml
-# command to run tests
+  - sudo pip install ansible==2.0.2.0
+  - sudo pip install docker-py
+  - sudo pip install six --upgrade
+  - sudo apt-get install -y sshpass
+  - ansible-galaxy install -r tests/requirements.yml -p tests/roles
+  - wget http://files.justinholmes.co/jboss-eap-6.4.0.zip -P files
+  - wget http://files.justinholmes.co/jboss-eap-6.4.7-patch.zip -P files
+
+services:
+  - docker
+
 script:
   - ansible-playbook -i tests/inventory tests/syntax-check.yml --syntax-check
+  - ansible-playbook -i tests/inventory  tests/docker-centos-eap-copy.yml
 
 notifications:
   slack: redhat:GhPEcNzYddt4Pf9OJW2wcyCK

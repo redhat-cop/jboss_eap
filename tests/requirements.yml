@@ -3,3 +3,6 @@
 
 - src: sabre1041.redhat-csp-download
   name: redhat-csp-download
+
+- src: chrismeyersfsu.provision_docker
+  name: provision_docker

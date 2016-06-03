@@ -39,7 +39,7 @@
     - jboss_eap
 
 ##
-# The version compare allows to decide what version of EAP that is provisioned and 
+# The version compare allows to decide what version of EAP that is provisioned and
 # use the appropriate init.d scripts and init.d configuraitons
 # In EAP6 its jboss-as-[standalone|domain].sh and jboss-as.conf respectively
 # In EAP7 its jboss-eap-rhel.sh and jboss-eap.conf respectively
@@ -66,7 +66,7 @@
 # RHEL 6 expects init.d service with extension
 ##
 - name: Set JBoss EAP Service Name EL 6
-  set_fact: 
+  set_fact:
     jboss_eap_service_name: "{{jboss_eap_service_file}}"
   when: (ansible_distribution_major_version | version_compare('6','<='))
   tags:
@@ -76,7 +76,7 @@
 # RHEL 7 expects init.d service without extension
 ##
 - name: Set JBoss EAP Service Name EL 7
-  set_fact: 
+  set_fact:
     jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
   when: (ansible_distribution_major_version | version_compare('7','>='))
   tags:
@@ -91,7 +91,7 @@
 #### Defensive Programming To Check If EAP Is Already Installed
 
 - name: Check Existence of Libraries
-  sudo: true
+  become: true
   stat:
     path: "{{ jboss_eap_library_dest + '/jboss-eap-6.4/version.txt'}}"
   register: jboss_eap_exists
@@ -100,7 +100,6 @@
 
 # Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
 - name: Determine if the Patch Can Be Applied
-  become: yes
   become_user: "{{ jboss_eap_user }}"
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
   register: patch_info_result
@@ -174,7 +173,7 @@
   when: transfer_method == 'copy-from-controller' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
 - name: Extract JBoss EAP Libraries
-  sudo: true
+  become: true
   unarchive:
     src: "{{ jboss_eap_artifact_dl_dest }}"
     dest: "{{ jboss_eap_library_dest }}"
@@ -188,11 +187,9 @@
 
 # Patches can be applied while EAP is running
 - name: Apply JBoss EAP Patch
-  become: yes
   become_user: "{{ jboss_eap_user }}"
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }} --verbose'"
-  notify: 
-    - Add jboss-as Service
+  notify:
     - Restart jboss-as Service
     - Verify jboss-as is running
   tags:
@@ -200,9 +197,9 @@
     - dev
   when: jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
 
-## Copy jboss-as-{{jboss_eap_mode}}.sh or jboss-eap-rhel.sh file to /etc/init.d 
+## Copy jboss-as-{{jboss_eap_mode}}.sh or jboss-eap-rhel.sh file to /etc/init.d
 - name: Copy JBoss EAP Service File
-  sudo: true
+  become: true
   copy:
     src: "{{jboss_eap_bin_dir}}/init.d/{{jboss_eap_service_file}}"
     dest: /etc/init.d
@@ -211,9 +208,22 @@
     group: "{{ jboss_eap_group }}"
     mode: "755"
   notify:
-    - Add jboss-as Service
     - Restart jboss-as Service
     - Verify jboss-as is running
+  tags:
+    - jboss_eap
+
+- name: Add jboss-as Service
+  become: true
+  command: "chkconfig --add {{jboss_eap_service_file}}"
+  tags:
+    - jboss_eap
+
+- name: Enable jboss-as Service
+  become: true
+  service:
+    name: "{{jboss_eap_service_file}}"
+    enabled: yes
   tags:
     - jboss_eap
 
