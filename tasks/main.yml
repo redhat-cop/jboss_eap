@@ -62,7 +62,27 @@
   tags:
     - jboss_eap
 
-- debug: msg="EAP HOME {{ jboss_eap_home }} and Service file {{jboss_eap_service_file}}  Service Name {{ jboss_eap_service_file | splitext | first }}"
+##
+# RHEL 6 expects init.d service with extension
+##
+- name: Set JBoss EAP Service Name EL 6
+  set_fact: 
+    jboss_eap_service_name: "{{jboss_eap_service_file}}"
+  when: (ansible_distribution_major_version | version_compare('6','<='))
+  tags:
+    - jboss_eap
+
+##
+# RHEL 7 expects init.d service without extension
+##
+- name: Set JBoss EAP Service Name EL 7
+  set_fact: 
+    jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
+  when: (ansible_distribution_major_version | version_compare('7','>='))
+  tags:
+    - jboss_eap
+
+- debug: msg="EAP HOME {{ jboss_eap_home }} and Service file {{jboss_eap_service_file}}  Service Name {{jboss_eap_service_name}}"
 
 #### Create Service Account
 

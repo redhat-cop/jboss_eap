@@ -9,6 +9,7 @@ galaxy_info:
    - name: EL
      versions:
      - 7
+     - 6
   categories:
    - java
    - jboss
