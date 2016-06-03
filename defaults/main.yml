@@ -16,7 +16,8 @@ jboss_eap_config: standalone.xml
 jboss_eap_mode: standalone
 jboss_eap_bind_web_address: 0.0.0.0
 jboss_eap_bind_management_address: 0.0.0.0
-jboss_eap_base_version: 6.4.0
+# Set this value that will suffix jboss-eap in the archive folder e.g. jboss-eap-6.4
+jboss_eap_base_version: 6.4
 
 # ussually this is set at the playbook level
 #transfer_method: # csp-to-host | copy-from-contoller
