@@ -24,7 +24,7 @@
     - jboss_eap
 
 - name: Create JBoss EAP Library Destination
-  sudo: true
+  become: true
   file:
     path: "{{ jboss_eap_library_dest }}"
     owner: "{{ jboss_eap_user }}"
