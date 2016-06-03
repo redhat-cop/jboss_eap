@@ -1,34 +1,11 @@
 ##
-# Refer to JBoss EAP documentation 
-# https://access.redhat.com/documentation/en-US/JBoss_Enterprise_Application_Platform/6.4/html/Installation_Guide/sect-Service_Configuration.html#Install_JBoss_Enterprise_Application_Platform_6_Red_Hat_Enterprise_Linux_Service
-# https://access.redhat.com/documentation/en/red-hat-jboss-enterprise-application-platform/7.0.beta/installation-guide/chapter-4-configuring-jboss-eap-to-run-as-a-service
-#
-- name: Add jboss-as Service
-  sudo: true
-  command: "chkconfig --add {{jboss_eap_service_file}}"
-  notify:
-    - Enable jboss-as Service
-  tags:
-    - jboss_eap
-
-- name: Enable jboss-as Service
-  sudo: true
-  service: 
-    name: "{{jboss_eap_service_file}}"
-    enabled: yes
-  notify:
-    - Restart jboss-as Service
-  tags:
-    - jboss_eap
-
-##
 # As the EAP service would be named like jboss-as-standlone.sh or jboss-eap.sh
 # the service ( directed via systemctl ) requires the service name to be without
 # extension hence we use spiltext filter to get the service name wihout '.sh' extension
 ##
 - name: Restart jboss-as Service
-  sudo: true
-  service: 
+  become: true
+  service:
     name: "{{ jboss_eap_service_name }}"
     state: restarted
   tags:
