@@ -1,4 +1,5 @@
 - hosts: jboss_eap_centos_hosts
+  become: true
   gather_facts: true
   vars:
     transfer_method: csp-to-host
