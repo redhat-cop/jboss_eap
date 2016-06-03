@@ -1,3 +1,6 @@
+##
+# {{ansible_managed}}
+##
 ## Process user
 JBOSS_USER={{jboss_eap_user}}
 ## Waiting time for returning control to SHELL, it depends upon how many applications/services that will be deployed
@@ -10,3 +13,5 @@ JBOSS_CONSOLE_LOG=/var/log/jboss-as/console.log
 JBOSS_HOME={{jboss_eap_home}}
 ## JBoss EAP Config
 JBOSS_CONFIG={{jboss_eap_config}}
+## JBoss Mode ( will be ignored by EAP6 init.d scripts) and only used by EAP7 init scripts
+JBOSS_MODE={{jboss_eap_mode}}
