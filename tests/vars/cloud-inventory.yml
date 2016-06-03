@@ -1,0 +1,5 @@
+inventory:
+  - name: jboss_eap_centos7
+    image: "chrismeyers/centos7"
+  - name: jboss_eap_centos6
+    image: "chrismeyers/centos6"

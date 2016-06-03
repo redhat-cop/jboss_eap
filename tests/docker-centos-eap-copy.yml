@@ -1,0 +1,32 @@
+---
+- name: Bring up docker containers
+  hosts: localhost
+  vars_files:
+  - vars/cloud-inventory.yml
+
+  roles:
+    - { role: provision_docker, provision_docker_privileged: "{{ true }}", provision_docker_inventory: "{{ inventory }}" }
+
+
+- name: Run Tests
+  hosts: docker_containers
+  roles:
+    - { role: jboss_common, transfer_method: copy-from-controller }
+    - { role: jboss_eap, transfer_method: copy-from-controller } # role under test
+
+
+- name: Remove docker containers
+  hosts: docker_containers
+  vars_files:
+  - vars/cloud-inventory.yml
+
+  tasks:
+  - local_action:
+      module: docker
+      name: "{{ item.name }}"
+      state: absent
+      image: "{{ item.image }}"
+    with_items:
+    - "{{ inventory }}"
+    tags:
+    - remove-containers

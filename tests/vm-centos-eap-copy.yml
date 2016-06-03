@@ -1,5 +1,5 @@
 - hosts: jboss_eap_centos_hosts
-  remote_user: root
+  become: true
   gather_facts: true
   vars:
     transfer_method: copy-from-controller
