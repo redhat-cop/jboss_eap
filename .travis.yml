@@ -14,7 +14,7 @@ install:
   - sudo pip install ansible==2.0.2.0
   - sudo pip install docker-py
   - sudo pip install six --upgrade
-  - sudo apt-get install -y sshpas
+  - sudo apt-get install -y sshpass
   - ansible-galaxy install -r tests/requirements.yml -p test/roles
   - wget http://files.justinholmes.co/jboss-eap-6.4.0.zip -P files
   - wget http://files.justinholmes.co/jboss-eap-6.4.7-patch.zip -P files
