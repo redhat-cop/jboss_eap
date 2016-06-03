@@ -190,7 +190,6 @@
   become_user: "{{ jboss_eap_user }}"
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch apply {{ jboss_eap_patch_dest }} --verbose'"
   notify:
-    - Add jboss-as Service
     - Restart jboss-as Service
     - Verify jboss-as is running
   tags:
@@ -209,9 +208,22 @@
     group: "{{ jboss_eap_group }}"
     mode: "755"
   notify:
-    - Add jboss-as Service
     - Restart jboss-as Service
     - Verify jboss-as is running
+  tags:
+    - jboss_eap
+
+- name: Add jboss-as Service
+  become: true
+  command: "chkconfig --add {{jboss_eap_service_file}}"
+  tags:
+    - jboss_eap
+
+- name: Enable jboss-as Service
+  become: true
+  service:
+    name: "{{jboss_eap_service_file}}"
+    enabled: yes
   tags:
     - jboss_eap
 
