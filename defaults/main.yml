@@ -20,4 +20,4 @@ jboss_eap_bind_management_address: 0.0.0.0
 jboss_eap_base_version: 6.4
 
 # ussually this is set at the playbook level
-#transfer_method: # csp-to-host | copy-from-contoller
+#transfer_method: # csp-to-host | copy-from-contoller | url
