@@ -16,15 +16,13 @@ install:
   - sudo pip install six --upgrade
   - sudo apt-get install -y sshpass
   - ansible-galaxy install -r tests/requirements.yml -p tests/roles
-  - wget http://files.justinholmes.co/jboss-eap-6.4.0.zip -P files
-  - wget http://files.justinholmes.co/jboss-eap-6.4.7-patch.zip -P files
 
 services:
   - docker
 
 script:
   - ansible-playbook -i tests/inventory tests/syntax-check.yml --syntax-check
-  - ansible-playbook -i tests/inventory  tests/docker-centos-eap-copy.yml
+  - ansible-playbook -i tests/inventory tests/docker-centos-eap-url.yml
 
 notifications:
   slack: redhat:GhPEcNzYddt4Pf9OJW2wcyCK
