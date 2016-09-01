@@ -15,8 +15,8 @@
     - {
         role: jboss_eap,
         transfer_method: url,
-        jboss_eap_artifact_source: "http://files.justinholmes.co/jboss-eap-6.4.0.zip",
-        jboss_eap_patch_artifact_source: "http://files.justinholmes.co/jboss-eap-6.4.7-patch.zip"
+        jboss_eap_artifact_source: "https://storage.googleapis.com/red-hat-bits/jboss-eap-6.4.0.zip",
+        jboss_eap_patch_artifact_source: "https://storage.googleapis.com/red-hat-bits/jboss-eap-6.4.7-patch.zip"
       } # role under test
 
 
