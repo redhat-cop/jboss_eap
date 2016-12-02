@@ -1,8 +1,7 @@
 ---
 ##
 # Refer to JBoss EAP documentation
-# https://access.redhat.com/documentation/en-US/JBoss_Enterprise_Application_Platform/6.4/html/Installation_Guide/sect-Service_Configuration.html#Install_JBoss_Enterprise_Application_Platform_6_Red_Hat_Enterprise_Linux_Service
-# https://access.redhat.com/documentation/en/red-hat-jboss-enterprise-application-platform/7.0.beta/installation-guide/chapter-4-configuring-jboss-eap-to-run-as-a-service
+# https://access.redhat.com/documentation/en/red-hat-jboss-enterprise-application-platform/7.0/paged/installation-guide/chapter-4-configuring-jboss-eap-to-run-as-a-service
 ##
 
 
