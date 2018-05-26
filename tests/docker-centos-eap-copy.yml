@@ -11,7 +11,7 @@
 - name: Run Tests
   hosts: docker_containers
   roles:
-    - { role: jboss_common, transfer_method: copy-from-controller }
+    - { role: redhat-cop.jboss_common, transfer_method: copy-from-controller }
     - { role: jboss_eap, transfer_method: copy-from-controller } # role under test
 
 
