@@ -1,0 +1,106 @@
+---
+
+- name: Set JBoss EAP Patch Download Facts
+  set_fact:
+    jboss_eap_patch_artifact_url: "{{ jboss_eap_patch_artifact_source }}"
+    jboss_eap_patch_dest: "{{ jboss_eap_artifacts_dl_dest_dir }}/{{ jboss_eap_patch_artifact_name }}"
+
+
+# Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
+- name: Determine if the Patch Can Be Applied
+  become_user: "{{ jboss_eap_user }}"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
+  register: patch_info_result
+  when: jboss_eap_exists.stat.exists == true
+
+
+#### Download and install base library and patch
+
+- name: Async Download JBoss EAP Patch by URL (HTTP/HTTPS/FTP)
+  get_url:
+    url: "{{ jboss_eap_patch_artifact_url }}"
+    dest: "{{ jboss_eap_patch_dest }}"
+    url_username: "{{ url_username | default(None) }}"
+    url_password: "{{ url_password | default(None) }}"
+  async: 7200
+  poll: 0
+  register: url_jboss_eap_patch_download
+  tags:
+    - jboss_eap
+  when: transfer_method == 'url' and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
+
+- name: Check On JBoss EAP Patch Download Completion (URL)
+  async_status: jid={{ url_jboss_eap_patch_download.ansible_job_id }}
+  register: job_result2
+  until: job_result2.finished
+  retries: 600
+  delay: 10
+  tags:
+    - jboss_eap
+  when: transfer_method == 'url' and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
+
+- name: Async Download JBoss EAP Patch from Red Hat Customer Portal
+  redhat_csp_download:
+    url: "{{ jboss_eap_patch_artifact_url }}"
+    dest: "{{ jboss_eap_patch_dest }}"
+    username: "{{ rhn_username }}"
+    password: "{{ rhn_password }}"
+  async: 7200
+  poll: 0
+  register: csp_jboss_eap_patch_download
+  tags:
+    - jboss_eap
+  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch == true and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
+
+- name: Check On JBoss EAP Patch Download Completion (CSP)
+  async_status: jid={{ csp_jboss_eap_patch_download.ansible_job_id }}
+  register: job_result2
+  until: job_result2.finished
+  retries: 600
+  delay: 10
+  tags:
+    - jboss_eap
+  when: transfer_method == 'csp-to-host' and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
+
+- name: Copy JBoss EAP Patch
+  copy:
+    src: "{{ jboss_eap_patch_artifact_name }}"
+    dest: "{{ jboss_eap_patch_dest }}"
+  when: transfer_method == 'copy-from-controller' and (jboss_eap_exists.stat.exists == false or 'base' in patch_info_result.stdout)
+
+- name: Determine current JBoss EAP patch info
+  become_user: "{{ jboss_eap_user }}"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
+  vars:
+    cmd: >-
+      patch info
+  register: patch_info
+
+- name: Set Cumulative Patch ID
+  set_fact:
+    jboss_eap_cumulative_patch_id: "{{ patch_info.stdout | regex_replace('(?s).*Cumulative patch ID: *(\\S+).*', '\\1') }}"
+
+- name: Determine available patch ID
+  become_user: "{{ jboss_eap_user }}"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
+  vars:
+    cmd: >-
+      patch inspect {{ jboss_eap_patch_dest }}
+  register: patch_inspect
+
+- name: Set fact jboss_eap_patch_id
+  set_fact:
+    jboss_eap_patch_id: "{{ patch_inspect.stdout | regex_replace('(?s).*Patch ID: *(\\S+).*', '\\1') }}"
+
+# Patches can be applied while EAP is running
+- name: Apply JBoss EAP Patch
+  become_user: "{{ jboss_eap_user }}"
+  command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
+  vars:
+    cmd: >-
+      patch apply /tmp/{{ jboss_eap_patch_artifact_name }} --verbose --override-all
+  when: >-
+    jboss_eap_cumulative_patch_id != jboss_eap_patch_id
+  #notify:
+  #  - Restart jboss-as Service
+  #  - Verify jboss-as is running

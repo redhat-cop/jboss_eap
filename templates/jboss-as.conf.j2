@@ -8,10 +8,11 @@ STARTUP_WAIT=120
 ## Waiting time for returning control to SHELL, it depends upon how many applications/services that will be undeployed
 SHUTDOWN_WAIT=30
 ## Log directory and file.
-JBOSS_CONSOLE_LOG=/var/log/jboss-as/console.log
+JBOSS_CONSOLE_LOG={{ jboss_eap_service_log_dir }}/jboss-{{ instance_name }}/console.log
 ## JBoss EAP home directory
 JBOSS_HOME={{jboss_eap_home}}
 ## JBoss EAP Config
-JBOSS_CONFIG={{jboss_eap_config}}
+JBOSS_CONFIG={{instance_config}}
 ## JBoss Mode ( will be ignored by EAP6 init.d scripts) and only used by EAP7 init scripts
-JBOSS_MODE={{jboss_eap_mode}}
+JBOSS_MODE={{instance_mode}}
+JBOSS_PIDFILE={{ jboss_eap_pid_file }}

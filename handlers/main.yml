@@ -3,19 +3,18 @@
 # the service ( directed via systemctl ) requires the service name to be without
 # extension hence we use spiltext filter to get the service name wihout '.sh' extension
 ##
-- name: Restart jboss-as Service
+- name: Restart JBoss 
   become: true
   service:
-    name: "{{ jboss_eap_service_name }}"
+    name: "{{ jboss_eap_service_file }}"
     state: restarted
-  tags:
-    - jboss_eap
+  
 
 # Sanity test if everything was setup right and JBoss is running
-- name: Verify jboss-as is running
-  wait_for: port="8080" host="{{ jboss_eap_bind_web_address }}" timeout=120
-  notify: Check jboss-as is available
+- name: Verify JBoss is running
+  wait_for: port="{{ instance_calculated_http_port }}" host="{{ instance_bind_address }}" timeout=120
+  notify: Check JBoss is available
 
-- name: Check jboss-as is available
+- name: Check JBoss is available
   uri:
-    url: "http://{{jboss_eap_bind_web_address}}:8080"
+    url: "http://{{ instance_bind_address }}:{{ instance_bind_address }}"
