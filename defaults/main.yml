@@ -1,23 +1,35 @@
 ---
-jboss_eap_artifact_source: https://access.redhat.com/jbossnetwork/restricted/softwareDownload.html?softwareId=37393
-jboss_eap_patch_artifact_source: https://access.redhat.com/jbossnetwork/restricted/softwareDownload.html?softwareId=43071
-jboss_eap_artifact_name: jboss-eap-6.4.0.zip  #jboss-eap-7.0.0.Beta.zip
-jboss_eap_patch_artifact_name: jboss-eap-6.4.7-patch.zip
+jboss_eap_artifact_source: https://access.redhat.com/jbossnetwork/restricted/softwareDownload.html?softwareId=55301
+jboss_eap_patch_artifact_source: https://access.redhat.com/jbossnetwork/restricted/softwareDownload.html?softwareId=57891
+jboss_eap_artifacts_dl_dest_dir: /tmp
+jboss_eap_group: jboss_as
+jboss_eap_user: jboss-as
+jboss_eap_library_dest_dir: "/opt/{{ jboss_eap_user }}"
+jboss_eap_base_version: 7.1
+jboss_eap_home_dir_name: jboss-eap-{{jboss_eap_base_version}}
+jboss_eap_base_directory_name: jboss-eap-7.1.0
+jboss_eap_artifact_name: "{{ jboss_eap_base_directory_name }}.zip"
+jboss_eap_patch_artifact_name: jboss-eap-7.1.2-patch.zip
+jboss_eap_standalone_backup_dir_name: .standalone
 
-jboss_eap_logging_timezone: America/New_York
+jboss_eap_default_logging_timezone: America/New_York
+jboss_eap_default_config: standalone.xml
+jboss_eap_default_mode: standalone
+jboss_eap_bind_default_web_address: 0.0.0.0
+jboss_eap_bind_default_management_address: 0.0.0.0
+jboss_eap_default_http_port: 8080
+jboss_eap_default_management_port: 9990
 
-jboss_eap_bind_web_interface: true
-jboss_eap_bind_management_interface: false
+# TODO: Reenable patch
 jboss_eap_apply_patch: true
 
-jboss_eap_user: jboss-as
+jboss_eap_service_conf_dir: "/etc/jboss"
+jboss_eap_service_log_dir: "/var/log"
+jboss_eap_service_data_dir: "/var/run"
 
-jboss_eap_config: standalone.xml
-jboss_eap_mode: standalone
-jboss_eap_bind_web_address: 0.0.0.0
-jboss_eap_bind_management_address: 0.0.0.0
-# Set this value that will suffix jboss-eap in the archive folder e.g. jboss-eap-6.4
-jboss_eap_base_version: 6.4
+jboss_instances:
+  - name: standalone
+
 
 # ussually this is set at the playbook level
 #transfer_method: # csp-to-host | copy-from-contoller | url

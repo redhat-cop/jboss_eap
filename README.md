@@ -17,11 +17,40 @@ Dependencies
 
 Our playbooks provide these dependencies in a [common role](https://github.com/redhat-cop/ansible-middleware-playbooks/tree/master/roles/common), but this there is no explicitly ansible dependency to allow end users more options.
 
+JBoss Instance Customization
+----------------
+
+JBoss instances can be customized on a per host/group basis by modifying the `jboss_instance` property. By default, a single standalone instance is deployed with HTTP and Management interfaces exposed to all interfaces. 
+
+```
+jboss_instances:
+  - name: standalone
+```
+
+There are several ways in which you can customize the JBoss instances as described below.
+
+
+* Create a single instance called _standalone_ which does not publicly expose the Management interface
+
+```
+jboss_instances:
+  - name: standalone
+    bind_management_address: 127.0.0.1
+```
+
+* Create multiple instances on the same machine with a port offset of 100
+
+```
+jboss_instances:
+  - name: node1
+  - name: node2
+    port_offset: 100
+```
+
 Example Playbooks
 ----------------
 
-- [JBoss EAP 6.4 on CentOS 7](https://github.com/redhat-cop/ansible-middleware-playbooks/blob/master/eap6.4-centos7.yml)
-- [JBoss EAP 6.4 on RHEL 7](https://github.com/redhat-cop/ansible-middleware-playbooks/blob/master/eap6.4-rhel7.yml)
+- [JBoss EAP 7.1 on RHEL 7](https://github.com/redhat-cop/ansible-middleware-playbooks/blob/master/eap7.1-rhel7.yml)
 
 License
 -------

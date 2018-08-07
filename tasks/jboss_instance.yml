@@ -1,0 +1,211 @@
+---
+
+- name: Set Instance facts
+  set_fact:
+    instance_name: "{{ instance.name }}"
+    instance_mode: "{{ instance.mode | default('') if instance.mode is defined else jboss_eap_default_mode }}"
+    instance_config: "{{ instance.config | default('') if instance.config is defined else jboss_eap_default_config }}"
+    instance_java_opts: "{{ instance.java_opts | default('') if instance.java_opts is defined else '' }}"
+    instance_logging_timezone: "{{ instance.logging_timezone | default('') if instance.logging_timezone is defined else jboss_eap_default_logging_timezone }}"
+    instance_http_port: "{{ instance.http_port | default('') if instance.http_port is defined else jboss_eap_default_http_port }}"
+    instance_management_port: "{{ instance.management_port | default('') if instance.management_port is defined else jboss_eap_default_management_port }}"
+    instance_bind_address: "{{ instance.bind_address | default('') if instance.bind_address is defined else jboss_eap_bind_default_web_address }}"
+    instance_bind_management_address: "{{ instance.bind_management_address | default('') if instance.bind_management_address is defined else jboss_eap_bind_default_management_address }}"
+    instance_port_offset: "{{ instance.port_offset | default('') if instance.port_offset is defined else '' }}"
+    instance_node_name: "{{ instance.node_name | default('') if instance.node_name is defined else instance.name }}"
+
+- name: Calculate Port Values
+  set_fact:
+    instance_calculated_http_port: "{{ (instance_http_port|int + instance_port_offset|default('0')|int) }}"
+    instance_calculated_management_port: "{{ (instance_management_port|int + instance_port_offset|default('0')|int) }}"
+
+- name: Set JBoss EAP Instance Facts
+  set_fact:
+    jboss_eap_runtime_conf_filename: "{{ instance_mode }}-{{ instance_name }}.conf"
+    jboss_eap_service_file: "jboss-{{ instance_name }}"
+    jboss_eap_bin_dir: "{{ jboss_eap_home }}/bin"
+
+- name: Set JBoss EAP Service Files Facts
+  set_fact:
+    jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/jboss-{{ instance_name }}.conf"
+    jboss_eap_runtime_conf_src_file: "{{ jboss_eap_bin_dir }}/{{ instance_mode }}.conf"
+    jboss_eap_runtime_conf_file: "{{ jboss_eap_bin_dir }}/{{ jboss_eap_runtime_conf_filename }}"
+    jboss_eap_service_src_file: "{{ (jboss_eap_base_version is version_compare('7.0','<')) | ternary('jboss-as-'+instance_mode+'.sh','jboss-eap-rhel.sh')}}"
+    jboss_eap_initd_service_file: "/etc/init.d/{{ jboss_eap_service_file }}"
+    jboss_eap_pid_file: "{{ jboss_eap_service_data_dir }}/jboss-{{ instance_name }}/jboss-{{ instance_name }}.pid"
+
+- name: Check if {{ instance_name }} Directory Exists
+  stat:
+    path: "{{ jboss_eap_home }}/{{ instance_name }}"
+  register: instance_homedir
+
+- name: Create {{ instance_name }} Directory
+  command: "cp -r {{ jboss_eap_home }}/{{ jboss_eap_standalone_backup_dir_name }} {{ jboss_eap_home }}/{{ instance_name }}"
+  when: not instance_homedir.stat.exists
+
+- name: Change Permissions on {{ instance_name }} Directory
+  file:
+    state: directory
+    recurse: yes
+    path: "{{ jboss_eap_home }}/{{ instance_name }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+
+
+- name: Create Temporary Working Directory
+  command: "mktemp -d /tmp/jboss-{{ instance_name }}-XXXXXX"
+  register: jboss_instance_mktemp
+  changed_when: False
+
+- name: Create JBoss EAP Service Conf Directory
+  file:
+    path: "{{ jboss_eap_service_conf_dir }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    state: directory
+    mode: "755"
+
+- name: Create JBoss EAP Service Log Directory
+  file:
+    path: "{{ jboss_eap_service_log_dir }}/{{ instance_name }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    state: directory
+    mode: "755"
+
+- name: Create JBoss EAP Service Runtime Data Directory
+  file:
+    path: "{{ jboss_eap_service_data_dir }}/{{ instance_name }}"
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    state: directory
+    mode: "755"
+
+- name: Copy JBoss EAP Service Conf File
+  template:
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    src: jboss-as.conf.j2
+    dest: "{{ jboss_eap_service_conf_file }}"
+    mode: "755"
+
+- name: Copy JBoss Service Configuration File to Temp Directory
+  become: true
+  copy:
+    src: "{{ jboss_eap_runtime_conf_src_file }}"
+    dest: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_runtime_conf_filename }}"
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+
+- name: Copy JBoss EAP Service File
+  become: true
+  copy:
+    src: "{{jboss_eap_bin_dir}}/init.d/{{jboss_eap_service_src_file}}"
+    dest: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    mode: "755"
+
+- name: Modify JBoss EAP Service File
+  lineinfile:
+     state: present
+     path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+     regexp: "{{ item.regexp }}"
+     line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^# processname:", line: "# processname: jboss-{{ instance_name }}" }
+    - { regexp: "^# pidfile:", line: "# pidfile: {{ jboss_eap_pid_file }}" }
+    - { regexp: "^# config:", line: "# config: {{ jboss_eap_service_conf_file }}" }
+    - { regexp: "JBOSS_CONF=", line: " JBOSS_CONF='{{ jboss_eap_service_conf_file }}'" }
+    - { regexp: "^  JBOSS_NAME", line: "  JBOSS_NAME='jboss-{{ instance_name }}'" }
+
+- name: Add RUN_CONF to EAP Service File
+  lineinfile:
+    state: present
+    path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    line: "RUN_CONF={{ jboss_eap_runtime_conf_file }}"
+    insertbefore: "^# Source function library."
+
+- name: Inject RUN_CONF to Startup in EAP Service File
+  replace:
+    path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    regexp: "LAUNCH_JBOSS_IN_BACKGROUND=1"
+    replace: "LAUNCH_JBOSS_IN_BACKGROUND=1 RUN_CONF=$RUN_CONF"
+
+#TODO: Node Name
+- name: Set Java Options Facts
+  set_fact:
+    instance_java_opts: "{{ (instance_java_opts + ' ' + item) | trim }}"
+  with_items:
+    - "{{ '-Djboss.bind.address='+(instance_bind_address | default('')) if (instance_bind_address is defined and instance_bind_address|trim != '') else '' }}"
+    - "{{ '-Djboss.bind.address.management='+(instance_bind_management_address | default('')) if (instance_bind_management_address is defined and instance_bind_management_address|trim != '') else '' }}"
+    - "{{ '-Duser.timezone='+(instance_logging_timezone | default('')) if (instance_logging_timezone is defined and instance_logging_timezone|trim != '') else '' }}"
+    - "{{ '-Djboss.socket.binding.port-offset='+(instance_port_offset | default('')) if (instance_port_offset is defined and instance_port_offset|trim != '') else '' }}"
+    - "{{ '-Djboss.node.name='+(instance_node_name | default('')) if (instance_node_name is defined and instance_node_name|trim != '') else '' }}"
+    - "{{ '-Djboss.server.base.dir=' + instance_name }}"
+
+- name: Set Java Options
+  lineinfile:
+    dest: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_runtime_conf_filename }}"
+    line: "JAVA_OPTS=\"$JAVA_OPTS {{ instance_java_opts }}\""
+
+
+- name: Copy JBoss Service Configuration File
+  become: true
+  copy:
+    src: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_runtime_conf_filename }}"
+    dest: "{{ jboss_eap_runtime_conf_file }}"
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+  notify:
+    - Restart JBoss
+    - Verify JBoss is running
+
+- name: Copy JBoss EAP Service File
+  become: true
+  copy:
+    src: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    dest: "{{ jboss_eap_initd_service_file }}"
+    remote_src: True
+    owner: "{{ jboss_eap_user }}"
+    group: "{{ jboss_eap_group }}"
+    mode: "755"
+  notify:
+    - Restart JBoss
+    - Verify JBoss is running
+
+- name: Remove JBoss Instance Temporary Directory
+  file:
+    path: "{{ jboss_instance_mktemp.stdout }}"
+    state: absent
+
+# RHEL 6 expects init.d service with extension
+##
+- name: Set JBoss EAP Service Name EL 6
+  set_fact:
+    jboss_eap_service_name: "{{jboss_eap_service_file}}"
+  when: (ansible_distribution_major_version is version_compare('6','<='))
+
+##
+# RHEL 7 expects init.d service without extension
+##
+- name: Set JBoss EAP Service Name EL 7
+  set_fact:
+    jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
+  when: (ansible_distribution_major_version is version_compare('7','>='))
+
+- name: "Add {{ jboss_eap_service_file }} Service"
+  become: true
+  command: "chkconfig --add {{ jboss_eap_service_file }}"
+
+- name: "Enable {{ jboss_eap_service_file }} Service"
+  become: true
+  service:
+    name: "{{ jboss_eap_service_file }}"
+    enabled: yes
+
+- name: Flush JBoss instance handlers
+  meta: flush_handlers
