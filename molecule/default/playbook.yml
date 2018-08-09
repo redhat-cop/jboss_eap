@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Common Role
+      include_role:
+        name: "redhat-cop.jboss_common"
+    - name: JBoss EAP Role
+      include_role:
+        name: "../../../"

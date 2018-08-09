@@ -110,16 +110,16 @@
 
 - name: Modify JBoss EAP Service File
   lineinfile:
-     state: present
-     path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
-     regexp: "{{ item.regexp }}"
-     line: "{{ item.line }}"
+    state: present
+    path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
   with_items:
-    - { regexp: "^# processname:", line: "# processname: jboss-{{ instance_name }}" }
-    - { regexp: "^# pidfile:", line: "# pidfile: {{ jboss_eap_pid_file }}" }
-    - { regexp: "^# config:", line: "# config: {{ jboss_eap_service_conf_file }}" }
-    - { regexp: "JBOSS_CONF=", line: " JBOSS_CONF='{{ jboss_eap_service_conf_file }}'" }
-    - { regexp: "^  JBOSS_NAME", line: "  JBOSS_NAME='jboss-{{ instance_name }}'" }
+    - {regexp: "^# processname:", line: "# processname: jboss-{{ instance_name }}"}
+    - {regexp: "^# pidfile:", line: "# pidfile: {{ jboss_eap_pid_file }}"}
+    - {regexp: "^# config:", line: "# config: {{ jboss_eap_service_conf_file }}"}
+    - {regexp: "JBOSS_CONF=", line: " JBOSS_CONF='{{ jboss_eap_service_conf_file }}'"}
+    - {regexp: "^  JBOSS_NAME", line: "  JBOSS_NAME='jboss-{{ instance_name }}'"}
 
 - name: Add RUN_CONF to EAP Service File
   lineinfile:

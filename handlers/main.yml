@@ -1,14 +1,15 @@
+---
+
 ##
 # As the EAP service would be named like jboss-as-standlone.sh or jboss-eap.sh
 # the service ( directed via systemctl ) requires the service name to be without
 # extension hence we use spiltext filter to get the service name wihout '.sh' extension
 ##
-- name: Restart JBoss 
+- name: Restart JBoss
   become: true
   service:
     name: "{{ jboss_eap_service_file }}"
     state: restarted
-  
 
 # Sanity test if everything was setup right and JBoss is running
 - name: Verify JBoss is running

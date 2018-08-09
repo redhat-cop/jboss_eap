@@ -1,4 +1,5 @@
 - hosts: jboss_eap_centos_hosts
   gather_facts: false
-  roles:
-  - jboss_eap
+  tasks:
+    - include_role:
+        name: "../"

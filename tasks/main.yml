@@ -1,7 +1,7 @@
 ---
 
 - name: Fail for Missing Transfer Method
-  fail: 
+  fail:
     msg: "This role requires transfer_method to be set and non empty. See the README"
   when: transfer_method is not defined or transfer_method == ''
 

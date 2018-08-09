@@ -1,0 +1,50 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: tests/requirements.yml
+    force: true
+driver:
+  name: docker
+lint:
+  name: yamllint
+  options:
+    config-file: tests/yamllint.yml
+platforms:
+  - name: centos-systemd
+    image: centos/systemd:latest
+    privileged: True
+    port_bindings:
+      - 8080:8080
+    published_ports:
+      - 0.0.0.0:8080:8080/TCP
+    command: "/usr/sbin/init"
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+  inventory:
+    group_vars:
+      all:
+        transfer_method: csp-to-host
+        rhn_username: ${RHN_USERNAME}
+        rhn_password: ${RHN_PASSWORD}
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    - lint
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    # -   idempotence
+    - side_effect
+    - verify
+    - destroy
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
