@@ -1,0 +1,14 @@
+---
+
+extends: default
+
+rules:
+  line-length:
+    level: error
+    max: 250
+  document-start:
+    present: true
+    level: error
+  comments:
+    require-starting-space: false
+  truthy: disable

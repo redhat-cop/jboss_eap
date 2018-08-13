@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Install Required Packages for Testing
+      package:
+        name: initscripts
+        state: latest
