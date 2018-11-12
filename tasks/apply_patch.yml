@@ -9,6 +9,7 @@
 # Currently we only support patching from base (e.g. 6.x.0), not incremental minor release patches as the role is for initial install
 - name: Determine if the Patch Can Be Applied
   become_user: "{{ jboss_eap_user }}"
+  become: yes
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh 'patch info --verbose'"
   register: patch_info_result
   when: jboss_eap_exists.stat.exists == true
@@ -70,6 +71,7 @@
 
 - name: Determine current JBoss EAP patch info
   become_user: "{{ jboss_eap_user }}"
+  become: yes
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
   vars:
     cmd: >-
@@ -82,6 +84,7 @@
 
 - name: Determine available patch ID
   become_user: "{{ jboss_eap_user }}"
+  become: yes
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
   vars:
     cmd: >-
@@ -95,6 +98,7 @@
 # Patches can be applied while EAP is running
 - name: Apply JBoss EAP Patch
   become_user: "{{ jboss_eap_user }}"
+  become: yes
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
   vars:
     cmd: >-

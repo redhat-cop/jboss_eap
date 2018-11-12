@@ -3,22 +3,22 @@
 language: python
 python:
   - "2.7"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
 env:
   global:
     - ANSIBLE_HOST_KEY_CHECKING=False
+    - PIP_DOWNLOAD_CACHE=$HOME/.cache/pip
 
 before_install:
   - sudo apt-get update -qq
 
 install:
   - pip install -U pip
-  - pip --version
-  - pip install ansible==2.4 ansible-lint yamllint flake8 molecule
-  - pip install 'docker<3.0'
-  - ansible-lint --version
-  - yamllint --version
-  - flake8 --version
-  - molecule --version
+  - pip install ansible==2.6 ansible-lint yamllint flake8 molecule docker "pytest<3.10"
 
 # command to run tests
 script:
