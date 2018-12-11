@@ -30,6 +30,3 @@ script:
       molecule lint
       molecule syntax
     fi
-
-notifications:
-  slack: redhat:GhPEcNzYddt4Pf9OJW2wcyCK
