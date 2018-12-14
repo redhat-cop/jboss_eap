@@ -63,7 +63,7 @@
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
     state: directory
-    mode: "755"
+    mode: 0755
 
 - name: Create JBoss EAP Service Log Directory
   file:
@@ -71,7 +71,7 @@
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
     state: directory
-    mode: "755"
+    mode: 0755
 
 - name: Create JBoss EAP Service Runtime Data Directory
   file:
@@ -79,7 +79,7 @@
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
     state: directory
-    mode: "755"
+    mode: 0755
 
 - name: Copy JBoss EAP Service Conf File
   template:
@@ -87,7 +87,7 @@
     group: "{{ jboss_eap_group }}"
     src: jboss-as.conf.j2
     dest: "{{ jboss_eap_service_conf_file }}"
-    mode: "755"
+    mode: 0755
 
 - name: Copy JBoss Service Configuration File to Temp Directory
   become: true
@@ -106,7 +106,7 @@
     remote_src: True
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-    mode: "755"
+    mode: 0755
 
 - name: Modify JBoss EAP Service File
   lineinfile:
@@ -172,7 +172,7 @@
     remote_src: True
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-    mode: "755"
+    mode: 0755
   notify:
     - Restart JBoss
     - Verify JBoss is running
@@ -196,10 +196,6 @@
   set_fact:
     jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
   when: (ansible_distribution_major_version is version_compare('7','>='))
-
-- name: "Add {{ jboss_eap_service_file }} Service"
-  become: true
-  command: "chkconfig --add {{ jboss_eap_service_file }}"
 
 - name: "Enable {{ jboss_eap_service_file }} Service"
   become: true
