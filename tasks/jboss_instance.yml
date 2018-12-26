@@ -30,7 +30,7 @@
     jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/jboss-{{ instance_name }}.conf"
     jboss_eap_runtime_conf_src_file: "{{ jboss_eap_bin_dir }}/{{ instance_mode }}.conf"
     jboss_eap_runtime_conf_file: "{{ jboss_eap_bin_dir }}/{{ jboss_eap_runtime_conf_filename }}"
-    jboss_eap_service_src_file: "{{ (jboss_eap_base_version is version_compare('7.0','<')) | ternary('jboss-as-'+instance_mode+'.sh','jboss-eap-rhel.sh')}}"
+    jboss_eap_service_src_file: "{{ (jboss_eap_base_version is version_compare('7.0','<')) | ternary('jboss-as-'+instance_mode+'.sh','jboss-eap-rhel.sh') }}"
     jboss_eap_initd_service_file: "/etc/init.d/{{ jboss_eap_service_file }}"
     jboss_eap_pid_file: "{{ jboss_eap_service_data_dir }}/jboss-{{ instance_name }}/jboss-{{ instance_name }}.pid"
 
@@ -53,7 +53,9 @@
 
 
 - name: Create Temporary Working Directory
-  command: "mktemp -d /tmp/jboss-{{ instance_name }}-XXXXXX"
+  tempfile:
+    prefix: "jboss-{{ instance_name }}"
+    state: directory
   register: jboss_instance_mktemp
   changed_when: False
 
@@ -93,7 +95,7 @@
   become: true
   copy:
     src: "{{ jboss_eap_runtime_conf_src_file }}"
-    dest: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_runtime_conf_filename }}"
+    dest: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_runtime_conf_filename }}"
     remote_src: True
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
@@ -101,8 +103,8 @@
 - name: Copy JBoss EAP Service File
   become: true
   copy:
-    src: "{{jboss_eap_bin_dir}}/init.d/{{jboss_eap_service_src_file}}"
-    dest: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    src: "{{ jboss_eap_bin_dir }}/init.d/{{ jboss_eap_service_src_file }}"
+    dest: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_service_file }}"
     remote_src: True
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
@@ -111,7 +113,7 @@
 - name: Modify JBoss EAP Service File
   lineinfile:
     state: present
-    path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    path: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_service_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -124,13 +126,13 @@
 - name: Add RUN_CONF to EAP Service File
   lineinfile:
     state: present
-    path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    path: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_service_file }}"
     line: "RUN_CONF={{ jboss_eap_runtime_conf_file }}"
     insertbefore: "^# Source function library."
 
 - name: Inject RUN_CONF to Startup in EAP Service File
   replace:
-    path: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    path: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_service_file }}"
     regexp: "LAUNCH_JBOSS_IN_BACKGROUND=1"
     replace: "LAUNCH_JBOSS_IN_BACKGROUND=1 RUN_CONF=$RUN_CONF"
 
@@ -139,23 +141,23 @@
   set_fact:
     instance_java_opts: "{{ (instance_java_opts + ' ' + item) | trim }}"
   with_items:
-    - "{{ '-Djboss.bind.address='+(instance_bind_address | default('')) if (instance_bind_address is defined and instance_bind_address|trim != '') else '' }}"
-    - "{{ '-Djboss.bind.address.management='+(instance_bind_management_address | default('')) if (instance_bind_management_address is defined and instance_bind_management_address|trim != '') else '' }}"
-    - "{{ '-Duser.timezone='+(instance_logging_timezone | default('')) if (instance_logging_timezone is defined and instance_logging_timezone|trim != '') else '' }}"
-    - "{{ '-Djboss.socket.binding.port-offset='+(instance_port_offset | default('')) if (instance_port_offset is defined and instance_port_offset|trim != '') else '' }}"
-    - "{{ '-Djboss.node.name='+(instance_node_name | default('')) if (instance_node_name is defined and instance_node_name|trim != '') else '' }}"
+    - "{{ '-Djboss.bind.address='+(instance_bind_address | default('')) if (instance_bind_address is defined and instance_bind_address|trim|length != 0) else '' }}"
+    - "{{ '-Djboss.bind.address.management='+(instance_bind_management_address | default('')) if (instance_bind_management_address is defined and instance_bind_management_address|trim|length != 0) else '' }}"
+    - "{{ '-Duser.timezone='+(instance_logging_timezone | default('')) if (instance_logging_timezone is defined and instance_logging_timezone|trim|length != 0) else '' }}"
+    - "{{ '-Djboss.socket.binding.port-offset='+(instance_port_offset | default('')) if (instance_port_offset is defined and instance_port_offset|trim|length != 0) else '' }}"
+    - "{{ '-Djboss.node.name='+(instance_node_name | default('')) if (instance_node_name is defined and instance_node_name|trim|length != 0) else '' }}"
     - "{{ '-Djboss.server.base.dir=' + instance_name }}"
 
 - name: Set Java Options
   lineinfile:
-    dest: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_runtime_conf_filename }}"
+    dest: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_runtime_conf_filename }}"
     line: "JAVA_OPTS=\"$JAVA_OPTS {{ instance_java_opts }}\""
 
 
 - name: Copy JBoss Service Configuration File
   become: true
   copy:
-    src: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_runtime_conf_filename }}"
+    src: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_runtime_conf_filename }}"
     dest: "{{ jboss_eap_runtime_conf_file }}"
     remote_src: True
     owner: "{{ jboss_eap_user }}"
@@ -167,7 +169,7 @@
 - name: Copy JBoss EAP Service File
   become: true
   copy:
-    src: "{{ jboss_instance_mktemp.stdout }}/{{ jboss_eap_service_file }}"
+    src: "{{ jboss_instance_mktemp.path }}/{{ jboss_eap_service_file }}"
     dest: "{{ jboss_eap_initd_service_file }}"
     remote_src: True
     owner: "{{ jboss_eap_user }}"
@@ -179,14 +181,14 @@
 
 - name: Remove JBoss Instance Temporary Directory
   file:
-    path: "{{ jboss_instance_mktemp.stdout }}"
+    path: "{{ jboss_instance_mktemp.path }}"
     state: absent
 
 # RHEL 6 expects init.d service with extension
 ##
 - name: Set JBoss EAP Service Name EL 6
   set_fact:
-    jboss_eap_service_name: "{{jboss_eap_service_file}}"
+    jboss_eap_service_name: "{{ jboss_eap_service_file }}"
   when: (ansible_distribution_major_version is version_compare('6','<='))
 
 ##
@@ -194,7 +196,7 @@
 ##
 - name: Set JBoss EAP Service Name EL 7
   set_fact:
-    jboss_eap_service_name: "{{jboss_eap_service_file | splitext | first }}"
+    jboss_eap_service_name: "{{ jboss_eap_service_file | splitext | first }}"
   when: (ansible_distribution_major_version is version_compare('7','>='))
 
 - name: "Enable {{ jboss_eap_service_file }} Service"

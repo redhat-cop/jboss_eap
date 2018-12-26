@@ -3,17 +3,17 @@
 - name: Fail for Missing Transfer Method
   fail:
     msg: "This role requires transfer_method to be set and non empty. See the README"
-  when: transfer_method is not defined or transfer_method == ''
+  when: transfer_method is not defined or transfer_method | length == 0
 
 - name: Fail for Missing Red Hat Network Username
   fail:
     msg: This role requires rhn_username to be set and non empty."
-  when: transfer_method == 'csp-to-host' and (rhn_username is not defined or rhn_username == '')
+  when: transfer_method == 'csp-to-host' and (rhn_username is not defined or rhn_username | length == 0)
 
 - name: Fail for Missing Red Hat Network Password
   fail:
     msg: "This role requires rhn_password to be set and non empty."
-  when: transfer_method == 'csp-to-host' and (rhn_password is not defined or rhn_password == '')
+  when: transfer_method == 'csp-to-host' and (rhn_password is not defined or rhn_password | length == 0)
 
 - name: Set JBoss EAP Download Facts
   set_fact:
@@ -45,7 +45,7 @@
 - name: Check Existence of Libraries
   become: true
   stat:
-    path: "{{ jboss_eap_library_dest_dir + '/' + jboss_eap_home_dir_name + '/version.txt'}}"
+    path: "{{ jboss_eap_library_dest_dir + '/' + jboss_eap_home_dir_name + '/version.txt' }}"
   register: jboss_eap_exists
 
 
@@ -58,7 +58,7 @@
   async: 7200
   poll: 0
   register: url_jboss_eap_download
-  when: transfer_method == 'url' and jboss_eap_exists.stat.exists == false
+  when: transfer_method == 'url' and not jboss_eap_exists.stat.exists | bool
 
 - name: Check On JBoss EAP Download Completion (URL)
   async_status: jid={{ url_jboss_eap_download.ansible_job_id }}
@@ -66,7 +66,7 @@
   until: job_result1.finished
   retries: 600
   delay: 10
-  when: transfer_method == 'url' and jboss_eap_exists.stat.exists == false
+  when: transfer_method == 'url' and not jboss_eap_exists.stat.exists | bool
 
 - name: Async Download JBoss EAP from Red Hat Customer Portal
   redhat_csp_download:
@@ -79,7 +79,7 @@
   register: csp_jboss_eap_download
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host' and jboss_eap_exists.stat.exists == false
+  when: transfer_method == 'csp-to-host' and not jboss_eap_exists.stat.exists | bool
 
 - name: Check On JBoss EAP Download Completion (CSP)
   async_status: jid={{ csp_jboss_eap_download.ansible_job_id }}
@@ -89,14 +89,14 @@
   delay: 10
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host' and jboss_eap_exists.stat.exists == false
+  when: transfer_method == 'csp-to-host' and not jboss_eap_exists.stat.exists | bool
 
 
 - name: Copy JBoss EAP
   copy:
     src: "{{ jboss_eap_artifact_name }}"
     dest: "{{ jboss_eap_artifact_dl_dest }}"
-  when: transfer_method == 'copy-from-controller' and jboss_eap_exists.stat.exists == false
+  when: transfer_method == 'copy-from-controller' and not jboss_eap_exists.stat.exists | bool
 
 - name: Extract JBoss EAP Libraries
   become: true
@@ -107,7 +107,7 @@
     copy: no
     owner: "{{ jboss_eap_user }}"
     group: "{{ jboss_eap_group }}"
-  when: jboss_eap_exists.stat.exists == false
+  when: not jboss_eap_exists.stat.exists | bool
 
 - name: Patch
   include_tasks: apply_patch.yml
@@ -133,7 +133,7 @@
 - name: Validate Instance Configuration
   fail:
     msg: Invalid JBoss instance configuration
-  when: jboss_instances is undefined or jboss_instances|length == 0
+  when: jboss_instances is undefined or jboss_instances | length == 0
 
 - name: Configure Instances
   include_tasks: jboss_instance.yml
