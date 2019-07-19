@@ -29,13 +29,13 @@
     name: "{{ jboss_eap_group }}"
     system: yes
     state: present
-    gid: "400"
+    gid: "{{ jboss_eap_group_gid | default('400') }}"
 
 - name: Create JBoss EAP User
   user:
     name: "{{ jboss_eap_user }}"
     comment: "JBoss EAP User"
-    uid: "400"
+    uid: "{{ jboss_eap_user_uid | default('400') }}"
     group: "{{ jboss_eap_group }}"
     home: "{{ jboss_eap_library_dest_dir }}"
     shell: "/bin/bash"
