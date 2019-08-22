@@ -30,3 +30,6 @@ script:
       molecule lint
       molecule syntax
     fi
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
