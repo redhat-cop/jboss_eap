@@ -30,7 +30,7 @@
     jboss_eap_service_conf_file: "{{ jboss_eap_service_conf_dir }}/jboss-{{ instance_name }}.conf"
     jboss_eap_runtime_conf_src_file: "{{ jboss_eap_bin_dir }}/{{ instance_mode }}.conf"
     jboss_eap_runtime_conf_file: "{{ jboss_eap_bin_dir }}/{{ jboss_eap_runtime_conf_filename }}"
-    jboss_eap_service_src_file: "{{ (jboss_eap_base_version is version_compare('7.0','<')) | ternary('jboss-as-'+instance_mode+'.sh','jboss-eap-rhel.sh') }}"
+    jboss_eap_service_src_file: "{{ (jboss_eap_base_version is version('7.0','<')) | ternary('jboss-as-'+instance_mode+'.sh','jboss-eap-rhel.sh') }}"
     jboss_eap_initd_service_file: "/etc/init.d/{{ jboss_eap_service_file }}"
     jboss_eap_pid_file: "{{ jboss_eap_service_data_dir }}/jboss-{{ instance_name }}/jboss-{{ instance_name }}.pid"
 
@@ -189,7 +189,7 @@
 - name: Set JBoss EAP Service Name EL 6
   set_fact:
     jboss_eap_service_name: "{{ jboss_eap_service_file }}"
-  when: (ansible_distribution_major_version is version_compare('6','<='))
+  when: (ansible_distribution_major_version is version('6','<='))
 
 ##
 # RHEL 7 expects init.d service without extension
@@ -197,7 +197,7 @@
 - name: Set JBoss EAP Service Name EL 7
   set_fact:
     jboss_eap_service_name: "{{ jboss_eap_service_file | splitext | first }}"
-  when: (ansible_distribution_major_version is version_compare('7','>='))
+  when: (ansible_distribution_major_version is version('7','>='))
 
 - name: "Enable {{ jboss_eap_service_file }} Service"
   become: true
