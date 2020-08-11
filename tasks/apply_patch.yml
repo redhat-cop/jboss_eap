@@ -28,7 +28,7 @@
   register: url_jboss_eap_patch_download
   tags:
     - jboss_eap
-  when: transfer_method == 'url' and (not jboss_eap_exists.stat.exists | bool or 'base' in patch_info_result.stdout)
+  when: transfer_method == 'url' and (not jboss_eap_exists.stat.exists | bool or patch_info_result is defined)
 
 - name: Check On JBoss EAP Patch Download Completion (URL)
   async_status: jid={{ url_jboss_eap_patch_download.ansible_job_id }}
@@ -38,7 +38,7 @@
   delay: 10
   tags:
     - jboss_eap
-  when: transfer_method == 'url' and (not jboss_eap_exists.stat.exists | bool or 'base' in patch_info_result.stdout)
+  when: transfer_method == 'url' and (not jboss_eap_exists.stat.exists | bool or patch_info_result is defined)
 
 - name: Async Download JBoss EAP Patch from Red Hat Customer Portal
   redhat_csp_download:
@@ -51,7 +51,8 @@
   register: csp_jboss_eap_patch_download
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host' and jboss_eap_apply_patch | bool and (not jboss_eap_exists.stat.exists | bool or 'base' in patch_info_result.stdout)
+  when:
+    - transfer_method == 'csp-to-host' and jboss_eap_apply_patch | bool and (not jboss_eap_exists.stat.exists | bool or (patch_info_result is defined and patch_info_result is defined))
 
 - name: Check On JBoss EAP Patch Download Completion (CSP)
   async_status: jid={{ csp_jboss_eap_patch_download.ansible_job_id }}
@@ -61,13 +62,13 @@
   delay: 10
   tags:
     - jboss_eap
-  when: transfer_method == 'csp-to-host' and (not jboss_eap_exists.stat.exists | bool or 'base' in patch_info_result.stdout)
+  when: transfer_method == 'csp-to-host' and (not jboss_eap_exists.stat.exists | bool or patch_info_result is defined)
 
 - name: Copy JBoss EAP Patch
   copy:
     src: "{{ jboss_eap_patch_artifact_name }}"
     dest: "{{ jboss_eap_patch_dest }}"
-  when: transfer_method == 'copy-from-controller' and (not jboss_eap_exists.stat.exists | bool or 'base' in patch_info_result.stdout)
+  when: transfer_method == 'copy-from-controller' and (not jboss_eap_exists.stat.exists | bool or patch_info_result is defined)
 
 - name: Determine current JBoss EAP patch info
   become_user: "{{ jboss_eap_user }}"
