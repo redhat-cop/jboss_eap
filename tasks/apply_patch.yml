@@ -103,7 +103,7 @@
   command: "{{ jboss_eap_home }}/bin/jboss-cli.sh {{ '--command=' ~ cmd | quote }}"
   vars:
     cmd: >-
-      patch apply /tmp/{{ jboss_eap_patch_artifact_name }} --verbose --override-all
+      patch apply /tmp/{{ jboss_eap_patch_artifact_name }} --override-all
   when: >-
     jboss_eap_cumulative_patch_id != jboss_eap_patch_id
   #notify:
